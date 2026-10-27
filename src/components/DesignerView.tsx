@@ -7,21 +7,14 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from '@xyflow/react';
-import {
-  CircuitBoard,
-  ScanLine,
-  LockKeyhole,
-  CodeXml,
-  Maximize,
-  Minus,
-  Plus,
-  MousePointer2,
-  GitFork,
-  CheckCheck,
-} from 'lucide-react';
+import { Maximize, Minus, Plus, GitFork, CheckCheck } from 'lucide-react';
 import { Tooltip } from 'radix-ui';
 import type { ReactNode } from 'react';
-import type { DesignerGraph, DesignerOptions } from '../lib/types';
+import type {
+  DesignerGraph,
+  DesignerOptions,
+  HeaderContent,
+} from '../lib/types';
 import { validateGraph } from '../lib/validate';
 import { COLUMN_WIDTH, layoutGraph } from '../lib/layout';
 import { OperationNode } from './OperationNode';
@@ -29,6 +22,7 @@ import type { OperationFlowNode } from './OperationNode';
 import { ConnectionEdge } from './ConnectionEdge';
 import type { ConnectionFlowEdge } from './ConnectionEdge';
 import { Inspector } from './Inspector';
+import { ViewerHeader } from './ViewerHeader';
 import type { Selection } from './Inspector';
 import { tokens as t } from '../styles/tokens.css';
 import * as s from '../styles/viewer.css';
@@ -94,10 +88,12 @@ function Viewer({
   graph,
   options,
   initialNodeId,
+  header,
 }: {
   graph: DesignerGraph;
   options: DesignerOptions;
   initialNodeId: string | undefined;
+  header: HeaderContent;
 }) {
   const pickerId = useId();
   const [selection, setSelection] = useState<Selection>(() => ({
@@ -172,42 +168,7 @@ function Viewer({
     <Tooltip.Provider delayDuration={250}>
       <div className={s.studio}>
         <header className={s.header}>
-          <div className={s.brand}>
-            <span className={s.brandMark}>
-              <CircuitBoard size={20} />
-            </span>
-            <span>
-              Quzzar<span className={s.brandDivider}>/</span>
-              <span className={s.brandSubtitle}>System Designer</span>
-            </span>
-          </div>
-          <div className={s.row}>
-            <span className={s.readOnly}>
-              <LockKeyhole size={12} />
-              Read-only
-            </span>
-            <span className={s.controlDivider} />
-            <a
-              className={s.iconButton}
-              href="https://github.com/Quzzar/quzzar-system-designer"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Open GitHub repository"
-            >
-              <CodeXml size={17} />
-            </a>
-          </div>
-        </header>
-        <div className={s.toolbar}>
-          <div>
-            <div className={s.row}>
-              <h1 className={s.title}>{options.name ?? 'System graph'}</h1>
-              <span className={s.badge}>Contract graph</span>
-            </div>
-            {options.description && (
-              <p className={s.description}>{options.description}</p>
-            )}
-          </div>
+          <ViewerHeader content={header} />
           <button
             type="button"
             className={s.button}
@@ -223,8 +184,8 @@ function Viewer({
                 ? 'Validation issues'
                 : 'Unverified'}
           </button>
-        </div>
-        <main className={s.main}>
+        </header>
+        <main className={s.main} aria-label={options.name ?? 'System graph'}>
           <div className={s.canvasColumn}>
             <div className={s.mobilePicker}>
               <label htmlFor={pickerId}>Inspect</label>
@@ -308,6 +269,7 @@ function Viewer({
                   maxZoom={1.8}
                   style={{ background: t.color.canvas }}
                   colorMode="dark"
+                  proOptions={{ hideAttribution: true }}
                   aria-label="Read-only system contract graph"
                 >
                   <Background
@@ -335,19 +297,6 @@ function Viewer({
               </div>
               <CanvasControls />
             </div>
-            <footer className={s.footer}>
-              <span className={s.row}>
-                <ScanLine
-                  size={14}
-                  className={result.valid ? s.good : s.warning}
-                />
-                {result.bindings.length} input fields resolved
-              </span>
-              <span className={`${s.row} ${s.footerHint}`}>
-                <MousePointer2 size={13} />
-                Select a node or connection to inspect
-              </span>
-            </footer>
           </div>
           <Inspector
             graph={graph}
@@ -366,6 +315,7 @@ export function DesignerView(props: {
   graph: DesignerGraph;
   options: DesignerOptions;
   initialNodeId: string | undefined;
+  header: HeaderContent;
 }) {
   return (
     <ReactFlowProvider>

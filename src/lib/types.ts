@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import type { ReactNode } from 'react';
 
 export type JsonValue =
   string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
@@ -72,8 +73,9 @@ export type DesignerGraph = {
   connections: DesignerConnection[];
 };
 
-export type DesignerOptions = { name?: string; description?: string };
-export type RenderOptions = { initialNodeId?: string };
+export type DesignerOptions = { name?: string };
+export type HeaderContent = ReactNode | HTMLElement;
+export type RenderOptions = { initialNodeId?: string; header?: HeaderContent };
 export type RenderResult =
   | { status: 'success'; unmount: () => void }
   | { status: 'error'; message: string };

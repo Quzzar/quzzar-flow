@@ -56,7 +56,6 @@ spacing:
   lg: '16px'
   xl: '20px'
   xxl: '24px'
-  section: '32px'
 components:
   button:
     backgroundColor: '{colors.raised}'
@@ -117,22 +116,22 @@ Cool charcoal neutrals establish the workspace; inspection blue marks interactiv
 ### Primary
 
 - **Inspection blue** (`blue`): selected card borders, selected edges and labels, active inspector tabs, contract types, field paths, and keyboard focus.
-- **Blue inset** (`blueSoft`): the brand mark, text selection, and active demo example.
+- **Blue inset** (`blueSoft`): text selection and the active demo example.
 
 ### Secondary
 
-- **Compatible mint** (`green`): verified compatibility and resolved-field status.
+- **Compatible mint** (`green`): verified compatibility status.
 - **Review amber** (`amber`): unverified contracts and schema warnings.
 - **Issue rose** (`red`): mismatches, node issue badges, and image-loading failure messages. Status always has accompanying text.
 
 ### Neutral
 
 - **Studio charcoal** (`background`): library chrome and inspector.
-- **Canvas charcoal** (`canvas`): graph ground, attribution ground, and connection labels.
+- **Canvas charcoal** (`canvas`): graph ground and connection labels.
 - **Muted panel** (`panel`): operation cards, canvas controls, and mobile chooser strip.
 - **Raised slate** (`raised`) and **Hover slate** (`hover`): buttons, badges, tooltips, and interactive hover surfaces.
 - **Structural slate** (`line`) and **Quiet divider** (`subtleLine`): card boundaries and section separators.
-- **Soft white** (`text`): main content; **Muted silver** (`muted`): descriptions and labels; **Dim silver** (`dim`): optional markers and canvas metadata.
+- **Soft white** (`text`): main content; **Muted silver** (`muted`): descriptions and labels; **Dim silver** (`dim`): canvas metadata.
 - **Grid slate** (`dot`) and **Connection steel** (`edge`): dotted canvas and unselected connectors.
 
 **The Inspection Accent Rule.** Blue identifies selection, focus, and inspectable contract structure; validation status uses its own labeled semantic colors.
@@ -146,27 +145,26 @@ The pairing keeps interface language compact and contract syntax distinct. Use s
 
 ### Hierarchy
 
-- **Title:** graph title, with the title role in frontmatter.
+- **Title:** empty-graph heading, with the title role in frontmatter. The demo supplies its own graph heading in the header slot using Manrope (18px, 600); the library does not generate a title from graph metadata.
 - **Section title:** inspector heading, with the section-title role in frontmatter.
 - **Body:** operation names and general interface text. Operation names use semibold (600); processing prose uses a looser line height (1.85).
 - **Label:** descriptions, tabs, section headings, and control hints. Section headings use medium weight (550); node descriptions use a line height (1.7).
-- **Code:** JSON, contract fields, edge payload labels, and binding paths. It wraps long values and paths rather than forcing the inspector wider.
-- **Brand:** compact Manrope wordmark (15px, 650, letter spacing -0.025em).
+- **Code:** JSON, edge payload labels, and binding paths use the code role. Schema field names use IBM Plex Mono at label size (12px); requirement labels use tiny Manrope (11px). Long names and paths wrap rather than forcing the inspector wider.
 - **Tiny:** content captions and badges (11px); captions use medium weight (500), badges use medium weight (550).
 
 There is no implemented display-heading scale. The unused display token is not a prescription for future screens.
 
 ## Layout
 
-The library owns the header, graph toolbar, canvas controls, status footer, and inspector. It fills its mount, with a minimum desktop height (640px). The header has a minimum height (64px). The toolbar sizes to content. The main desktop grid allocates the remaining width to the canvas and a fixed inspector column (344px). The inspector scrolls independently within the mounted viewer.
+The library owns a single header row, canvas controls, and inspector. It fills its mount, with a minimum desktop height (640px). The header has a minimum height (64px), caller-owned content on the left, and the validation status action on the right. Callers supply the header through `render(..., { header })` as React content or an HTMLElement. Its content region flexes, can shrink, and wraps long text. Graph name remains metadata; it does not generate header copy. The main desktop grid allocates the remaining width to the canvas and a fixed inspector column (344px). The inspector scrolls independently within the mounted viewer.
 
 Operation cards keep a fixed logical width (248px), and React Flow scales the graph through pan, zoom, and fit-to-view. The dotted grid uses a spacing (22px). Canvas controls sit at the lower left with a shared inset (24px); the canvas has a minimum height (380px). Nodes and connections can be selected, but nodes cannot be dragged, connected, reconnected, or deleted.
 
-At the mobile breakpoint (maximum width 760px), the toolbar wraps, the brand subtitle hides, and the layout becomes one column. An Inspect chooser provides nodes, connections, and validation without requiring precise canvas taps. The canvas becomes a fixed overview region (460px tall), followed by the footer and a full-width inspector in normal document flow. The footer hint hides below the secondary breakpoint (1100px). Coarse pointers receive larger control targets (44px).
+At the mobile breakpoint (maximum width 760px), the layout becomes one column and the header uses smaller horizontal insets. An Inspect chooser provides nodes, connections, and validation without requiring precise canvas taps. The canvas becomes a fixed overview region (460px tall), followed directly by a full-width inspector in normal document flow. Coarse pointers receive larger control targets (44px).
 
-Spacing follows the frontmatter scale. Header and toolbar insets use `xxl` on desktop and `lg` on mobile; inspector sections use `xl`; node bodies use `lg`; node headers combine `md` vertically with `lg` horizontally. Content blocks stack with `lg` gaps. Tables scroll within their own width, and long code and binding paths wrap.
+Spacing follows the frontmatter scale. Header insets use `xxl` on desktop and `lg` on mobile; inspector sections use `xl`; node bodies use `lg`; node headers combine `md` vertically with `lg` horizontally. Content blocks stack with `lg` gaps. Tables scroll within their own width, and long code and binding paths wrap.
 
-The Vite consumer adds a wrapping example navigation above the library mount. Its four examples are authored in `examples/`; that row belongs to the demo, not the package viewer.
+The Vite consumer adds a wrapping example navigation above the library mount and supplies an h1 for the selected example through the header slot. Its four examples are authored in `examples/`; that navigation belongs to the demo. The viewer adds no brand strip, read-only label, repository link, automatic tagline, Contract graph badge, global status footer, or attribution badge.
 
 ## Elevation & Depth
 
@@ -176,7 +174,7 @@ The authored UI uses no box shadows. Tonal layering, one-pixel borders, and sect
 
 ## Shapes
 
-Compact controls, badges, images, and labels share gently curved corners through `small`. The brand mark and grouped canvas controls use `medium`. Operation cards use the more generous `node` radius and clip their content at that boundary. Scrollbar thumbs use the fully rounded token. Structural borders are thin (1px). Blue connection handles are small circles (8px) with a canvas-colored border (2px).
+Compact controls, badges, images, and labels share gently curved corners through `small`. Grouped canvas controls use `medium`. Operation cards use the more generous `node` radius and clip their content at that boundary. Scrollbar thumbs use the fully rounded token. Structural borders are thin (1px). Blue connection handles are small circles (8px) with a canvas-colored border (2px).
 
 ## Components
 
@@ -186,7 +184,7 @@ Restrained raised controls use the button primitive for validation and inspectio
 
 ### Chips
 
-Muted rectangular badges identify the contract graph or an issue. Issue text changes to issue rose. These are informational labels, not filters.
+Muted rectangular issue badges appear in operation headers when a node has an error. Their text uses issue rose. These are informational labels, not filters.
 
 ### Cards / Containers
 
@@ -204,7 +202,9 @@ Inspector tabs use muted text and a transparent background. The active tab adds 
 
 Bezier connections use a directional arrow. Unselected paths use connection steel with a thin stroke (1.4px); selection uses inspection blue with a stronger stroke (2px). The clickable interaction width is wider than the visible stroke (24px). Payload names appear in compact monospaced labels and split onto separate lines. The selected label gains a blue border and text.
 
-The connection inspector distinguishes consumed fields from available upstream output and the consumer's complete input contract. Source output paths point to consumer input paths; fields supplied by other connections are listed separately. Contract rows pair field names with blue type labels and mark optional fields with a question mark. Complete JSON Schema is available through a native disclosure.
+The connection inspector distinguishes consumed fields from available upstream output and the consumer's complete input contract. Source output paths point to consumer input paths; fields supplied by other connections are listed separately. Contracts render as recursive field trees with monospaced names, blue type labels, and explicit required or optional labels for object fields. Native details/summary branches expand nested objects, array items and tuples, union alternatives, intersections, and negation. Top-level branches open initially in the inspector; compact card schemas start collapsed. Leaf rows reserve the same chevron space without showing an expand affordance. Open branches rotate their chevron and reveal children inset behind a structural left border.
+
+Schema rows wrap at narrow widths, use label-size text, and separate branches with quiet dividers. Children use a modest indent (12px) and a left guide, keeping hierarchy readable within the inspector. Descriptions appear in muted prose; constraints appear beneath rows in wrapping, plain-language notes such as “At least 1” or “Min. 2 characters.” Compact card schemas omit constraint notes. Contract inspection uses this tree rather than a raw JSON disclosure; authored JSON content blocks remain monospaced payload previews.
 
 ## Do's and Don'ts
 
@@ -214,6 +214,7 @@ The connection inspector distinguishes consumed fields from available upstream o
 - **Do** keep card headers and content separate with a structural divider.
 - **Do** keep detailed input and output contracts in the inspector.
 - **Do** preserve the mobile inspector chooser and readable stacked details.
+- **Do** let callers own header content and use the field tree for contract inspection.
 
 ### Don't:
 

@@ -5,7 +5,6 @@ import { SystemDesigner } from '../src/index';
 export function createInvalidContractExample(): SystemDesigner {
   const sd = new SystemDesigner({
     name: 'A contract that does not fit',
-    description: 'Inspect an ambiguous quantity and a missing price.',
   });
   for (const [id, name, quantity] of [
     ['order', 'Order quantity', 2],

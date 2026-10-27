@@ -38,11 +38,6 @@ globalStyle(`${studio} ::selection`, {
   color: t.color.text,
 });
 globalStyle(`${studio} svg`, { flexShrink: 0 });
-globalStyle(`${studio} .react-flow__attribution`, {
-  background: t.color.canvas,
-  fontSize: t.size.small,
-});
-globalStyle(`${studio} .react-flow__attribution a`, { color: t.color.muted });
 globalStyle(`${studio} ::-webkit-scrollbar`, {
   width: t.space.xs,
   height: t.space.xs,
@@ -63,45 +58,72 @@ export const header = style({
   gap: t.space.lg,
   '@media': { [smallScreen]: { padding: `0 ${t.space.lg}` } },
 });
-export const brand = style({
+export const customHeader = style({
+  flex: 1,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+});
+export const schemaTree = style({ minWidth: 0 });
+export const schemaBranch = style({
+  borderBottom: `1px solid ${t.color.subtleLine}`,
+});
+export const schemaRow = style({
   display: 'flex',
-  alignItems: 'center',
-  gap: t.space.md,
-  fontWeight: 650,
-  fontSize: t.size.brand,
-  letterSpacing: '-0.025em',
+  flexWrap: 'wrap',
+  alignItems: 'baseline',
+  gap: t.space.xs,
+  padding: `${t.space.sm} 0`,
+  listStyle: 'none',
+  fontSize: t.size.small,
+  selectors: { 'summary&': { cursor: 'pointer' } },
 });
-export const brandMark = style({
-  width: t.space.section,
-  height: t.space.section,
-  display: 'grid',
-  placeItems: 'center',
-  color: t.color.blue,
-  background: t.color.blueSoft,
-  borderRadius: t.radius.medium,
-});
-export const brandDivider = style({
-  color: t.color.line,
-  margin: `0 ${t.space.xs}`,
-});
-export const brandSubtitle = style({
+globalStyle(`${schemaRow}::-webkit-details-marker`, { display: 'none' });
+export const schemaChevron = style({
+  alignSelf: 'center',
   color: t.color.muted,
-  fontWeight: 450,
-  '@media': { [smallScreen]: { display: 'none' } },
+  flexShrink: 0,
 });
+globalStyle(`${schemaBranch}[open] > summary > .${schemaChevron}`, {
+  transform: 'rotate(90deg)',
+});
+export const schemaLeafMarker = style({ visibility: 'hidden', flexShrink: 0 });
+export const schemaFieldName = style({
+  fontFamily: t.font.code,
+  overflowWrap: 'anywhere',
+  minWidth: 0,
+});
+export const schemaRequirement = style({
+  fontSize: t.size.tiny,
+  color: t.color.muted,
+  marginRight: 'auto',
+});
+export const schemaChildren = style({
+  paddingLeft: t.space.md,
+  borderLeft: `1px solid ${t.color.line}`,
+  margin: `${t.space.xxs} 0 ${t.space.sm} ${t.space.xs}`,
+});
+export const schemaDescription = style({
+  color: t.color.muted,
+  fontSize: t.size.small,
+  lineHeight: 1.75,
+  margin: `${t.space.xxs} 0 ${t.space.sm}`,
+});
+export const schemaConstraints = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: `${t.space.xxs} ${t.space.md}`,
+  color: t.color.muted,
+  fontSize: t.size.small,
+  padding: `0 0 ${t.space.sm} ${t.space.xl}`,
+});
+
 export const row = style({
   display: 'flex',
   alignItems: 'center',
   gap: t.space.sm,
 });
 export const muted = style({ color: t.color.muted });
-export const readOnly = style({
-  color: t.color.muted,
-  fontSize: t.size.small,
-  display: 'flex',
-  alignItems: 'center',
-  gap: t.space.xs,
-});
+
 export const iconButton = style({
   display: 'inline-flex',
   alignItems: 'center',
@@ -138,18 +160,7 @@ export const button = style({
   ':hover': { background: t.color.hover },
   '@media': { '(pointer: coarse)': { minHeight: t.dimension.touch } },
 });
-export const toolbar = style({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: `${t.space.lg} ${t.space.xxl}`,
-  gap: t.space.lg,
-  flexShrink: 0,
-  borderBottom: `1px solid ${t.color.subtleLine}`,
-  '@media': {
-    [smallScreen]: { flexWrap: 'wrap', padding: t.space.lg, gap: t.space.md },
-  },
-});
+
 export const title = style({
   margin: 0,
   fontSize: t.size.title,
@@ -253,22 +264,7 @@ export const controlDivider = style({
   background: t.color.line,
   margin: `0 ${t.space.xxs}`,
 });
-export const footer = style({
-  minHeight: '58px',
-  flexShrink: 0,
-  borderTop: `1px solid ${t.color.subtleLine}`,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: `${t.space.md} ${t.space.xxl}`,
-  gap: t.space.md,
-  color: t.color.muted,
-  fontSize: t.size.small,
-  '@media': { [smallScreen]: { flexWrap: 'wrap', padding: t.space.lg } },
-});
-export const footerHint = style({
-  '@media': { 'screen and (max-width: 1100px)': { display: 'none' } },
-});
+
 export const inspector = style({
   background: t.color.background,
   borderLeft: `1px solid ${t.color.line}`,
@@ -339,24 +335,13 @@ export const code = style({
   lineHeight: 1.9,
 });
 
-export const details = style({ marginTop: t.space.lg });
-export const contractField = style({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'baseline',
-  gap: t.space.md,
-  fontFamily: t.font.code,
-  fontSize: t.size.tiny,
-  padding: `${t.space.sm} 0`,
-  borderBottom: `1px solid ${t.color.subtleLine}`,
-});
 export const fieldType = style({
   color: t.color.blue,
   textAlign: 'right',
   overflowWrap: 'anywhere',
   minWidth: 0,
 });
-export const optional = style({ color: t.color.dim });
+
 export const node = style({
   width: t.dimension.node,
   background: t.color.panel,

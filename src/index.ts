@@ -8,6 +8,7 @@ export type {
   DesignerGraph,
   DesignerOptions,
   RenderOptions,
+  HeaderContent,
   RenderResult,
   ValidationIssue,
   ValidationResult,

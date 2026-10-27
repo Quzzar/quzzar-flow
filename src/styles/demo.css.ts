@@ -37,3 +37,10 @@ export const exampleActive = style([
   exampleLink,
   { color: t.color.blue, background: t.color.blueSoft },
 ]);
+export const exampleHeading = style({
+  margin: 0,
+  fontFamily: t.font.body,
+  fontSize: t.size.title,
+  fontWeight: 600,
+  color: t.color.text,
+});

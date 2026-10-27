@@ -72,7 +72,9 @@ const result = sd.validate();
 console.log(result.status, result.bindings, result.issues);
 
 // <div id="diagram" style="height: 720px"></div>
-const mounted = await sd.render('diagram', { initialNodeId: 'total' });
+const header = document.createElement('h1');
+header.textContent = 'Calculate a total';
+const mounted = await sd.render('diagram', { header, initialNodeId: 'total' });
 // An HTMLElement works too: await sd.render(document.getElementById('diagram')!).
 if (mounted.status === 'error') {
   console.error(mounted.message);
@@ -96,7 +98,7 @@ The example chooser belongs to the demo page. It is not injected by `render()`.
 
 ## What render() includes
 
-The package supplies the entire React Flow canvas, automatic layout, node cards, connection labels, zoom/pan controls, validation view, and inspector. Nodes cannot be dragged, connected, edited, or deleted in the viewer.
+The package supplies the React Flow canvas, automatic layout, node cards, connection labels, zoom/pan controls, validation view, and inspector. A single header row reserves its right side for validation status; the left side is caller-owned. Nodes cannot be dragged, connected, edited, or deleted in the viewer.
 
 Per-node configuration:
 
@@ -106,7 +108,17 @@ Per-node configuration:
 - `processing`: the explanation shown when inspecting the node; also the card preview when `render` is omitted.
 - `additionalInfo`: optional context shown in the inspector.
 
-The shared dark studio shell and card structure are built into this initial version. Arbitrary React components, custom node templates, and per-instance themes are not exposed yet. The header title and description come from the constructor options. There is no input/output text footer on the node cards.
+The shared dark studio shell and card structure are built into this initial version. Custom node templates and per-instance themes are not exposed yet. Node cards have no input/output text footer; the viewer has no branding, tagline, or global status footer.
+
+Pass optional `header` content to `render()`: an HTMLElement or a React node. With no header content, only the validation status is shown. Constructor `name` is graph metadata, not an automatic heading. A supplied DOM element moves into the header slot and detaches when the viewer unmounts. React content mounts and unmounts with the viewer.
+
+```tsx
+await sd.render('diagram', {
+  header: <h1>Payment processing</h1>,
+});
+```
+
+Input and output contracts use an expandable schema tree with readable types, required/optional property labels, nested object and array fields, and constraints such as minimum quantities. Raw JSON Schema is not dumped into the interface.
 
 Select a node for its overview and contracts. Select a connection to see its inferred consumed fields, the available upstream output, the consumer’s complete input contract, and inputs supplied by other connections. The viewer shows declared contracts and illustrative content, not live runtime payloads.
 

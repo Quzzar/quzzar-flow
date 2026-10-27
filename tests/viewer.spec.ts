@@ -14,8 +14,19 @@ test('inspect nodes, schemas, inferred connections, and validation without graph
   );
   await page.getByRole('tab', { name: 'Input', exact: true }).click();
   await expect(page.getByRole('tabpanel')).toContainText('quantity');
-  await page.getByText('Full JSON Schema', { exact: true }).click();
-  await expect(page.getByRole('tabpanel')).toContainText('"required"');
+  await expect(page.getByRole('tabpanel')).toContainText('required');
+  await expect(page.getByRole('tabpanel')).toContainText('At least 1');
+  await expect(page.getByText('Full JSON Schema', { exact: true })).toHaveCount(
+    0,
+  );
+  await expect(page.locator('.react-flow__attribution')).toHaveCount(0);
+  await expect(page.getByText('Contract graph', { exact: true })).toHaveCount(
+    0,
+  );
+  await expect(page.getByText('Read-only', { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByText('Select a node or connection to inspect', { exact: true }),
+  ).toHaveCount(0);
   await page
     .getByRole('button', {
       name: 'Inspect connection: priceCents',
@@ -140,6 +151,21 @@ test('built package mounts by DOM ID and element, unmounts, and preserves host s
   await expect(
     page.getByRole('heading', { name: 'Embedded graph', exact: true }),
   ).toHaveCount(1);
+  await page.getByRole('tab', { name: 'Output', exact: true }).click();
+  const schemaPanel = page.getByRole('tabpanel');
+  await expect(schemaPanel).toContainText('customer');
+  await expect(schemaPanel).toContainText('optional');
+  await expect(schemaPanel).toContainText('Max. 80 characters');
+  await schemaPanel.getByText('tags', { exact: true }).click();
+  await expect(schemaPanel).toContainText('Each item');
+  await expect(schemaPanel).toContainText('"alpha" | "beta"');
+  await expect(schemaPanel).not.toContainText('$schema');
+  await page
+    .getByRole('button', { name: 'Mount React header', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'React header', exact: true }),
+  ).toBeVisible();
   await page
     .getByRole('button', { name: 'Missing target', exact: true })
     .click();

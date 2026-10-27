@@ -5,7 +5,6 @@ import { SystemDesigner } from '../src/index';
 export function createDocumentReviewExample(): SystemDesigner {
   const sd = new SystemDesigner({
     name: 'Document review',
-    description: 'Nested content, a shared policy, and two consumers.',
   });
   const documentSchema = z.object({ title: z.string(), body: z.string() });
   const reviewedSchema = z.object({

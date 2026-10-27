@@ -5,8 +5,6 @@ import { SystemDesigner } from '../src/index';
 export function createImageDeliveryExample(): SystemDesigner {
   const sd = new SystemDesigner({
     name: 'Image delivery',
-    description:
-      'Preview an image alongside its metadata and delivery contract.',
   });
   const assetSchema = z.object({
     url: z.string(),

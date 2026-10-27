@@ -26,8 +26,12 @@ if (!example) {
     root.textContent = `Unknown example: ${exampleId}. Choose an example above.`;
 } else {
   const sd = example.create();
+  const header = document.createElement('h1');
+  header.className = s.exampleHeading;
+  header.textContent = example.name;
   const mount = await sd.render('root', {
     initialNodeId: example.selectedNode,
+    header,
   });
   if (mount.status === 'error') {
     console.error(mount.message);

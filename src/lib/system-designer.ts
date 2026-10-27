@@ -94,6 +94,7 @@ export class SystemDesigner {
         graph: this.getGraph(),
         options: this.options,
         initialNodeId: options.initialNodeId,
+        header: options.header,
       }),
     );
     return { status: 'success', unmount };

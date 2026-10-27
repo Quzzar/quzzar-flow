@@ -5,7 +5,6 @@ import { SystemDesigner } from '../src/index';
 export function createCheckoutExample(): SystemDesigner {
   const sd = new SystemDesigner({
     name: 'Order checkout',
-    description: 'Two sources. One transformation. Every input accounted for.',
   });
 
   sd.add({

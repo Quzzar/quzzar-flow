@@ -10,3 +10,8 @@ copyFileSync(
   'node_modules/@fontsource/ibm-plex-mono/LICENSE',
   'dist/licenses/ibm-plex-mono-OFL.txt',
 );
+
+copyFileSync(
+  'node_modules/@xyflow/react/LICENSE',
+  'dist/licenses/react-flow-MIT.txt',
+);

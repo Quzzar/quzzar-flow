@@ -31,7 +31,10 @@ Make system structure and the movement and transformation of data inspectable so
 - Public GitHub repository authorized by the user.
 - Build the skill later. Do not create one in this phase.
 - API: instantiate SystemDesigner, add nodes, connect them, validate, and render.
-- Publishing, explicit field mappings, arbitrary React content, and additional layout controls remain undecided.
+- Optional header content belongs to the caller: React content or an HTMLElement supplied to render().
+- The viewer provides no automatic branding, tagline, or global footer.
+- Schema contracts are shown as an expandable field tree, not a raw JSON Schema dump.
+- Publishing, explicit field mappings, arbitrary React node-card content, and additional layout controls remain undecided.
 
 ## Brand Commitments
 

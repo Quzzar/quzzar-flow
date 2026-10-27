@@ -32,12 +32,16 @@ export function layoutGraph(
   for (const [id, layer] of layers)
     columns.set(layer, [...(columns.get(layer) ?? []), id]);
   const positions = new Map<string, { x: number; y: number }>();
-  for (const [layer, ids] of columns)
+  let offset = 0;
+  for (const [, ids] of columns) {
+    const rows = Math.min(ids.length, 8);
     ids.forEach((id, index) =>
       positions.set(id, {
-        x: layer * COLUMN_WIDTH,
-        y: index * 350 - (ids.length - 1) * 175,
+        x: offset + Math.floor(index / rows) * COLUMN_WIDTH,
+        y: (index % rows) * 350 - (rows - 1) * 175,
       }),
     );
+    offset += Math.ceil(ids.length / rows) * COLUMN_WIDTH;
+  }
   return positions;
 }

@@ -2,6 +2,7 @@ import { createCheckoutExample } from './checkout';
 import { createDocumentReviewExample } from './document-review';
 import { createImageDeliveryExample } from './image-delivery';
 import { createInvalidContractExample } from './invalid-contract';
+import { createStressExample } from './stress-test';
 
 export const EXAMPLES = [
   {
@@ -31,5 +32,26 @@ export const EXAMPLES = [
     source: 'invalid-contract.ts',
     create: createInvalidContractExample,
     selectedNode: 'total',
+  },
+  {
+    id: 'stress-test',
+    name: 'Stress test',
+    source: 'stress-test.ts',
+    create: () => createStressExample('inferred'),
+    selectedNode: 'decision',
+  },
+  {
+    id: 'stress-ambiguous',
+    name: 'Stress: ambiguous',
+    source: 'stress-test.ts',
+    create: () => createStressExample('ambiguous'),
+    selectedNode: 'decision',
+  },
+  {
+    id: 'stress-resolved',
+    name: 'Stress: resolved',
+    source: 'stress-test.ts',
+    create: () => createStressExample('resolved'),
+    selectedNode: 'decision',
   },
 ];

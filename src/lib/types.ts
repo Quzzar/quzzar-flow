@@ -39,6 +39,16 @@ export type DesignerConnection = {
   source: string;
   target: string;
   label?: string;
+  map?: FieldMapping[];
+};
+
+/** Paths are arrays so a field named `customer.id` remains one unambiguous key. */
+export type FieldMapping = { from: string[]; to: string[] };
+export type ConnectionOptions = { label?: string; map?: FieldMapping[] };
+export type MappingSuggestion = {
+  connectionId: string;
+  sourceNodeId: string;
+  mapping: FieldMapping;
 };
 
 export type ValidationIssue = {
@@ -48,6 +58,7 @@ export type ValidationIssue = {
   path: string;
   nodeId?: string;
   connectionId?: string;
+  suggestions?: MappingSuggestion[];
 };
 
 /** `valid` is true only when every check is proven compatible. */
@@ -66,6 +77,7 @@ export type InputBinding = {
   connectionId: string;
   sourceNodeId: string;
   outputPath: string;
+  mode: 'inferred' | 'explicit';
 };
 
 export type DesignerGraph = {

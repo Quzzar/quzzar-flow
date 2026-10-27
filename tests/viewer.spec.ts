@@ -176,3 +176,88 @@ test('built package mounts by DOM ID and element, unmounts, and preserves host s
       .evaluate((body) => getComputedStyle(body).backgroundColor),
   ).toBe('rgb(255, 255, 255)');
 });
+
+test('closing any inspector clears selection and expands the canvas', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const canvas = page.getByLabel('Read-only system contract graph', {
+    exact: true,
+  });
+  const before = await canvas.boundingBox();
+  await page
+    .getByRole('button', { name: 'Close inspector', exact: true })
+    .click();
+  await expect(page.getByLabel('Node inspector')).toHaveCount(0);
+  await expect(page.locator('.react-flow__node.selected')).toHaveCount(0);
+  expect((await canvas.boundingBox())?.width).toBeGreaterThan(
+    before?.width ?? 0,
+  );
+  await page.getByRole('button', { name: 'Valid graph', exact: true }).click();
+  await expect(page.getByLabel('Validation inspector')).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Close inspector', exact: true })
+    .click();
+  await expect(page.getByLabel('Validation inspector')).toHaveCount(0);
+  await page
+    .getByRole('button', {
+      name: 'Inspect connection: priceCents',
+      exact: true,
+    })
+    .click();
+  await expect(page.getByLabel('Connection inspector')).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Close inspector', exact: true })
+    .click();
+  await expect(page.getByLabel('Connection inspector')).toHaveCount(0);
+  await expect(page.locator('.react-flow__edge.selected')).toHaveCount(0);
+});
+
+test('large examples expose 48 suppliers, ambiguous mappings, and an explicit resolution', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/?example=stress-test');
+  await expect(
+    page.getByRole('button', { name: 'Valid graph', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('.react-flow__node')).toHaveCount(53);
+  await expect(page.locator('.react-flow__edge')).toHaveCount(52);
+  await page
+    .getByLabel('Inspect', { exact: true })
+    .selectOption('node:signal01');
+  await expect(page.getByLabel('Node inspector')).toContainText('Signal 01');
+  await expect(
+    page.locator('.react-flow__node[data-id="signal01"]'),
+  ).toBeVisible();
+  await page
+    .getByRole('navigation', { name: 'Examples' })
+    .getByRole('link', { name: 'Stress: ambiguous', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Validation issues', exact: true })
+    .click();
+  await expect(page.getByLabel('Validation inspector')).toContainText(
+    'ambiguous-input',
+  );
+  await expect(page.getByLabel('Validation inspector')).toContainText(
+    'Choose signal01',
+  );
+  await page
+    .getByRole('navigation', { name: 'Examples' })
+    .getByRole('link', { name: 'Stress: resolved', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Valid graph', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('.react-flow__node')).toHaveCount(54);
+  await expect(page.getByLabel('Node inspector')).toContainText('explicit');
+  await page
+    .getByLabel('Inspect', { exact: true })
+    .selectOption('connection:connection-1');
+  await expect(page.getByLabel('Connection inspector')).toContainText(
+    'explicit',
+  );
+  expect(errors).toEqual([]);
+});

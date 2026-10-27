@@ -5,7 +5,13 @@ describe('public API examples', () => {
   for (const example of EXAMPLES) {
     test(`${example.id} has its intended validation result`, () => {
       const result = example.create().validate();
-      if (example.id === 'invalid-contract') {
+      if (example.id === 'stress-ambiguous') {
+        expect(result.status).toBe('invalid');
+        expect(result.issues).toHaveLength(3);
+        expect(
+          result.issues.every((issue) => issue.code === 'ambiguous-input'),
+        ).toBe(true);
+      } else if (example.id === 'invalid-contract') {
         expect(result.status).toBe('invalid');
         expect(result.issues.map((issue) => issue.code)).toEqual([
           'ambiguous-input',

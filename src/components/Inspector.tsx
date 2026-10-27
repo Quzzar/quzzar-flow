@@ -1,5 +1,6 @@
-import { ArrowRight, CheckCheck, Link2, ScanLine } from 'lucide-react';
+import { ArrowRight, CheckCheck, Link2, ScanLine, X } from 'lucide-react';
 import { Tabs } from 'radix-ui';
+import type { ReactNode } from 'react';
 import type {
   DesignerGraph,
   DesignerNode,
@@ -8,12 +9,45 @@ import type {
 import { describeSchema } from '../lib/schema';
 import { ContractView } from './ContractView';
 import { ContentBlocks } from './ContentBlocks';
+import { BindingList } from './BindingList';
 import * as s from '../styles/viewer.css';
 
 export type Selection =
   | { type: 'node'; id: string }
   | { type: 'connection'; id: string }
   | { type: 'validation' };
+
+function InspectorFrame({
+  label,
+  onClose,
+  children,
+}: {
+  label: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <aside
+      className={s.inspector}
+      aria-label={label}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') onClose();
+      }}
+    >
+      <div className={s.inspectorControls}>
+        <button
+          type="button"
+          className={`${s.iconButton} ${s.closeInspector}`}
+          aria-label="Close inspector"
+          onClick={onClose}
+        >
+          <X size={16} />
+        </button>
+      </div>
+      {children}
+    </aside>
+  );
+}
 
 function NodeContract({
   node,
@@ -52,15 +86,17 @@ export function Inspector({
   selection,
   result,
   onSelect,
+  onClose,
 }: {
   graph: DesignerGraph;
   selection: Selection;
   result: ValidationResult;
   onSelect: (selection: Selection) => void;
+  onClose: () => void;
 }) {
   if (selection.type === 'validation')
     return (
-      <aside className={s.inspector} aria-label="Validation inspector">
+      <InspectorFrame label="Validation inspector" onClose={onClose}>
         <div className={s.inspectorHeader}>
           <div className={s.row}>
             <ScanLine size={17} className={s.muted} />
@@ -98,6 +134,20 @@ export function Inspector({
               </div>
               <code className={s.bindingPath}>{issue.path}</code>
               <p className={s.paragraph}>{issue.message}</p>
+              {issue.suggestions?.map((suggestion) => (
+                <div
+                  className={s.mappingSuggestion}
+                  key={`${suggestion.connectionId}-${JSON.stringify(suggestion.mapping)}`}
+                >
+                  <span className={s.muted}>
+                    Choose {suggestion.sourceNodeId}: update its existing
+                    connection:
+                  </span>
+                  <pre
+                    className={s.code}
+                  >{`sd.connect(${JSON.stringify(suggestion.sourceNodeId)}, ${JSON.stringify(issue.nodeId)}, {\n  map: [${JSON.stringify(suggestion.mapping)}]\n})`}</pre>
+                </div>
+              ))}
               {issue.nodeId && (
                 <button
                   className={s.button}
@@ -115,12 +165,13 @@ export function Inspector({
         <section className={s.section}>
           <h3 className={s.sectionHeading}>How inference works</h3>
           <p className={s.paragraph}>
-            Exact field paths first, then matching field names at any depth.
-            Required inputs need a guaranteed, compatible source. Multiple
-            candidates are reported as ambiguous.
+            Explicit mappings choose the source first. Otherwise, exact field
+            paths take precedence over matching names at another depth. Required
+            inputs need a guaranteed, compatible source. Multiple candidates are
+            reported as ambiguous.
           </p>
         </section>
-      </aside>
+      </InspectorFrame>
     );
 
   if (selection.type === 'connection') {
@@ -131,15 +182,15 @@ export function Inspector({
     const target = graph.nodes.find((node) => node.id === connection?.target);
     if (!connection || !source || !target)
       return (
-        <aside className={s.inspector}>
+        <InspectorFrame label="Inspector" onClose={onClose}>
           <p className={s.empty}>This connection references a missing node.</p>
-        </aside>
+        </InspectorFrame>
       );
     const bindings = result.bindings.filter(
       (binding) => binding.connectionId === connection.id,
     );
     return (
-      <aside className={s.inspector} aria-label="Connection inspector">
+      <InspectorFrame label="Connection inspector" onClose={onClose}>
         <div className={s.inspectorHeader}>
           <div className={s.row}>
             <Link2 size={17} className={s.nodeIcon} />
@@ -154,7 +205,12 @@ export function Inspector({
           {bindings.length ? (
             bindings.map((binding) => (
               <div className={s.binding} key={binding.inputPath}>
-                <div className={s.bindingPath}>{binding.outputPath}</div>
+                <div className={s.bindingPath}>
+                  {binding.outputPath}{' '}
+                  {binding.mode === 'explicit' && (
+                    <span className={s.badge}>explicit</span>
+                  )}
+                </div>
                 <div className={s.bindingSource}>
                   <ArrowRight size={12} />
                   {binding.inputPath}
@@ -192,7 +248,12 @@ export function Inspector({
               )
               .map((binding) => (
                 <div key={binding.inputPath} className={s.binding}>
-                  <div className={s.bindingPath}>{binding.inputPath}</div>
+                  <div className={s.bindingPath}>
+                    {binding.inputPath}{' '}
+                    {binding.mode === 'explicit' && (
+                      <span className={s.badge}>explicit</span>
+                    )}
+                  </div>
                   <div className={s.bindingSource}>
                     ← {binding.sourceNodeId} <code>{binding.outputPath}</code>
                   </div>
@@ -200,22 +261,22 @@ export function Inspector({
               ))}
           </section>
         )}
-      </aside>
+      </InspectorFrame>
     );
   }
 
   const node = graph.nodes.find((item) => item.id === selection.id);
   if (!node)
     return (
-      <aside className={s.inspector}>
+      <InspectorFrame label="Inspector" onClose={onClose}>
         <p className={s.empty}>Select a node or connection to inspect it.</p>
-      </aside>
+      </InspectorFrame>
     );
   const bindings = result.bindings.filter(
     (binding) => binding.nodeId === node.id,
   );
   return (
-    <aside className={s.inspector} aria-label="Node inspector">
+    <InspectorFrame label="Node inspector" onClose={onClose}>
       <div className={s.inspectorHeader}>
         <h2 className={s.sectionTitle}>{node.name}</h2>
         <p className={s.description}>
@@ -242,14 +303,7 @@ export function Inspector({
           {bindings.length > 0 && (
             <section className={s.section}>
               <h3 className={s.sectionHeading}>Where inputs come from</h3>
-              {bindings.map((binding) => (
-                <div key={binding.inputPath} className={s.binding}>
-                  <div className={s.bindingPath}>{binding.inputPath}</div>
-                  <div className={s.bindingSource}>
-                    ← {binding.sourceNodeId} <code>{binding.outputPath}</code>
-                  </div>
-                </div>
-              ))}
+              <BindingList bindings={bindings} graph={graph} />
             </section>
           )}
           {node.additionalInfo && (
@@ -282,6 +336,6 @@ export function Inspector({
           <NodeContract node={node} direction="output" />
         </Tabs.Content>
       </Tabs.Root>
-    </aside>
+    </InspectorFrame>
   );
 }

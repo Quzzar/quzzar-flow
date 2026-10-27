@@ -366,6 +366,38 @@ export function validateGraph(graph: DesignerGraph): ValidationResult {
     if (source.output.status !== 'success' || target.input.status !== 'success')
       continue;
     connectionsChecked++;
+    const supplied = fields(source.output.schema, true);
+    const accepted = fields(target.input.schema, true);
+    for (const mapping of connection.map ?? []) {
+      if (
+        !supplied.some(
+          (field) =>
+            JSON.stringify(field.segments) === JSON.stringify(mapping.from),
+        )
+      ) {
+        issues.push({
+          kind: 'error',
+          code: 'mapping-source',
+          connectionId: connection.id,
+          path: fieldPath(mapping.from),
+          message: 'The explicitly mapped output path does not exist.',
+        });
+      }
+      if (
+        !accepted.some(
+          (field) =>
+            JSON.stringify(field.segments) === JSON.stringify(mapping.to),
+        )
+      ) {
+        issues.push({
+          kind: 'error',
+          code: 'mapping-target',
+          connectionId: connection.id,
+          path: fieldPath(mapping.to),
+          message: 'The explicitly mapped input path does not exist.',
+        });
+      }
+    }
   }
 
   const bindings: InputBinding[] = [];
@@ -383,6 +415,20 @@ export function validateGraph(graph: DesignerGraph): ValidationResult {
         connection,
       }));
     });
+    const byPath = new Map<string, typeof candidates>();
+    const byName = new Map<string, typeof candidates>();
+    for (const candidate of candidates) {
+      const key = JSON.stringify(candidate.segments);
+      const pathCandidates = byPath.get(key);
+      if (pathCandidates) pathCandidates.push(candidate);
+      else byPath.set(key, [candidate]);
+      const name = candidate.segments.at(-1);
+      if (name !== undefined) {
+        const namedCandidates = byName.get(name);
+        if (namedCandidates) namedCandidates.push(candidate);
+        else byName.set(name, [candidate]);
+      }
+    }
     for (const field of fields(target.schema, false)) {
       if (
         typeof field.schema !== 'boolean' &&
@@ -390,15 +436,89 @@ export function validateGraph(graph: DesignerGraph): ValidationResult {
         !Object.keys(field.schema.properties ?? {}).length
       )
         continue;
-      const exact = candidates.filter(
-        (candidate) =>
-          JSON.stringify(candidate.segments) === JSON.stringify(field.segments),
+      const overrides = incoming.flatMap((connection) =>
+        (connection.map ?? [])
+          .filter(
+            (mapping) =>
+              mapping.to.length <= field.segments.length &&
+              mapping.to.every((part, index) => field.segments[index] === part),
+          )
+          .map((mapping) => ({ connection, mapping })),
       );
-      const sameName = candidates.filter(
-        (candidate) =>
-          field.segments.length > 0 &&
-          candidate.segments.at(-1) === field.segments.at(-1),
-      );
+      if (overrides.length) {
+        const specificity = Math.max(
+          ...overrides.map(({ mapping }) => mapping.to.length),
+        );
+        const preferred = overrides.filter(
+          ({ mapping }) => mapping.to.length === specificity,
+        );
+        if (preferred.length > 1) {
+          issues.push({
+            kind: 'error',
+            code: 'ambiguous-mapping',
+            nodeId: node.id,
+            path: fieldPath(field.segments),
+            message:
+              'More than one explicit mapping selects this input. Keep one mapping at this specificity.',
+          });
+          continue;
+        }
+        const choice = preferred[0];
+        if (!choice) continue;
+        const outputSegments = [
+          ...choice.mapping.from,
+          ...field.segments.slice(choice.mapping.to.length),
+        ];
+        const candidate = byPath
+          .get(JSON.stringify(outputSegments))
+          ?.find((item) => item.connection.id === choice.connection.id);
+        if (!candidate) {
+          if (field.required)
+            issues.push({
+              kind: 'error',
+              code: 'mapping-source',
+              nodeId: node.id,
+              connectionId: choice.connection.id,
+              path: fieldPath(field.segments),
+              message: `The chosen source does not supply ${fieldPath(outputSegments)}.`,
+            });
+          continue;
+        }
+        const differences = compare(
+          candidate.schema,
+          field.schema,
+          fieldPath(field.segments),
+        );
+        if (field.required && !candidate.required)
+          differences.push({
+            kind: 'error',
+            path: fieldPath(field.segments),
+            message:
+              'The chosen output field is optional and cannot guarantee this input.',
+          });
+        if (differences.length)
+          issues.push(
+            ...differences.map((issue) => ({
+              ...issue,
+              code: 'mapping-incompatible',
+              nodeId: node.id,
+              connectionId: choice.connection.id,
+            })),
+          );
+        else
+          bindings.push({
+            nodeId: node.id,
+            inputPath: fieldPath(field.segments),
+            connectionId: choice.connection.id,
+            sourceNodeId: choice.connection.source,
+            outputPath: fieldPath(outputSegments),
+            mode: 'explicit',
+          });
+        continue;
+      }
+      const exact = byPath.get(JSON.stringify(field.segments)) ?? [];
+      const name = field.segments.at(-1);
+      const sameName = name === undefined ? [] : (byName.get(name) ?? []);
       const matches = exact.length > 0 ? exact : sameName;
       const assessed = matches.map((candidate) => ({
         candidate,
@@ -413,6 +533,23 @@ export function validateGraph(graph: DesignerGraph): ValidationResult {
           differences.length === 0 && (!field.required || candidate.required),
       );
       if (compatible.length === 1) {
+        const uncertain = assessed.some(
+          ({ candidate, differences }) =>
+            (!field.required || candidate.required) &&
+            differences.some((issue) => issue.kind === 'unverified') &&
+            !differences.some((issue) => issue.kind === 'error'),
+        );
+        if (uncertain) {
+          issues.push({
+            kind: 'unverified',
+            code: 'unverified-input',
+            nodeId: node.id,
+            path: fieldPath(field.segments),
+            message:
+              'Another candidate cannot be ruled out. Use an explicit field mapping to select the intended source.',
+          });
+          continue;
+        }
         const match = compatible[0];
         if (match)
           bindings.push({
@@ -421,6 +558,7 @@ export function validateGraph(graph: DesignerGraph): ValidationResult {
             connectionId: match.candidate.connection.id,
             sourceNodeId: match.candidate.connection.source,
             outputPath: fieldPath(match.candidate.segments),
+            mode: 'inferred',
           });
       } else if (compatible.length > 1) {
         issues.push({
@@ -429,6 +567,11 @@ export function validateGraph(graph: DesignerGraph): ValidationResult {
           nodeId: node.id,
           path: fieldPath(field.segments),
           message: `Multiple connected outputs can supply this field: ${compatible.map(({ candidate }) => `${candidate.connection.source}${fieldPath(candidate.segments).slice(1)}`).join(', ')}.`,
+          suggestions: compatible.map(({ candidate }) => ({
+            connectionId: candidate.connection.id,
+            sourceNodeId: candidate.connection.source,
+            mapping: { from: [...candidate.segments], to: [...field.segments] },
+          })),
         });
       } else if (matches.length > 0) {
         const unverified = assessed.some(({ differences }) =>

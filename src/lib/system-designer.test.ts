@@ -51,6 +51,7 @@ describe('contract inference', () => {
         sourceNodeId: 'order',
         outputPath: '$["request"]["item"]["quantity"]',
         connectionId: 'connection-1',
+        mode: 'inferred',
       },
       {
         nodeId: 'target',
@@ -58,6 +59,7 @@ describe('contract inference', () => {
         sourceNodeId: 'price',
         outputPath: '$["catalog"]["priceCents"]',
         connectionId: 'connection-2',
+        mode: 'inferred',
       },
     ]);
   });
@@ -269,5 +271,152 @@ describe('graph and host boundaries', () => {
   test('render reports a missing browser DOM instead of requiring a server', async () => {
     const result = await new SystemDesigner().render('graph');
     expect(result.status).toBe('error');
+  });
+});
+
+describe('explicit field mappings', () => {
+  test('selects one source without suppressing its schema checks', () => {
+    const sd = new SystemDesigner();
+    source(sd, 'order', z.object({ quantity: z.number() }));
+    source(sd, 'warehouse', z.object({ quantity: z.number() }));
+    target(sd, z.object({ quantity: z.number() }));
+    sd.connect('order', 'target', {
+      map: [{ from: ['quantity'], to: ['quantity'] }],
+    });
+    sd.connect('warehouse', 'target');
+    expect(sd.validate().valid).toBe(true);
+    expect(sd.validate().bindings[0]).toMatchObject({
+      sourceNodeId: 'order',
+      mode: 'explicit',
+    });
+  });
+
+  test('maps a renamed nested subtree and allows a more specific field override', () => {
+    const sd = new SystemDesigner();
+    source(
+      sd,
+      'profile',
+      z.object({
+        profile: z.object({ name: z.string(), quantity: z.number() }),
+      }),
+    );
+    source(sd, 'order', z.object({ amount: z.number() }));
+    target(
+      sd,
+      z.object({
+        customer: z.object({ name: z.string(), quantity: z.number() }),
+      }),
+    );
+    sd.connect('profile', 'target', {
+      map: [{ from: ['profile'], to: ['customer'] }],
+    });
+    sd.connect('order', 'target', {
+      map: [{ from: ['amount'], to: ['customer', 'quantity'] }],
+    });
+    const result = sd.validate();
+    expect(result.valid).toBe(true);
+    expect(result.bindings).toHaveLength(2);
+    expect(
+      result.bindings.find(
+        (binding) => binding.inputPath === '$["customer"]["quantity"]',
+      )?.sourceNodeId,
+    ).toBe('order');
+  });
+
+  test('an incompatible explicit choice cannot silently use another compatible source', () => {
+    const sd = new SystemDesigner();
+    source(sd, 'chosen', z.object({ quantity: z.string() }));
+    source(sd, 'other', z.object({ quantity: z.number() }));
+    target(sd, z.object({ quantity: z.number() }));
+    sd.connect('chosen', 'target', {
+      map: [{ from: ['quantity'], to: ['quantity'] }],
+    }).connect('other', 'target');
+    expect(sd.validate().valid).toBe(false);
+    expect(sd.validate().bindings).toHaveLength(0);
+    expect(sd.validate().issues[0]?.code).toBe('mapping-incompatible');
+  });
+
+  test('reports nonexistent source and destination paths', () => {
+    const sd = new SystemDesigner();
+    source(sd, 'source', z.object({ quantity: z.number() }));
+    target(sd, z.object({ quantity: z.number() }));
+    sd.connect('source', 'target', {
+      map: [
+        { from: ['missing'], to: ['quantity'] },
+        { from: ['quantity'], to: ['typo'] },
+      ],
+    });
+    expect(sd.validate().valid).toBe(false);
+    expect(sd.validate().issues.map((issue) => issue.code)).toContain(
+      'mapping-source',
+    );
+    expect(sd.validate().issues.map((issue) => issue.code)).toContain(
+      'mapping-target',
+    );
+  });
+
+  test('refuses competing explicit choices and preserves optionality guarantees', () => {
+    const sd = new SystemDesigner();
+    source(sd, 'one', z.object({ quantity: z.number() }));
+    source(sd, 'two', z.object({ quantity: z.number() }));
+    target(sd, z.object({ quantity: z.number() }));
+    const map = [{ from: ['quantity'], to: ['quantity'] }];
+    sd.connect('one', 'target', { map }).connect('two', 'target', { map });
+    expect(sd.validate().issues[0]?.code).toBe('ambiguous-mapping');
+    const optional = new SystemDesigner();
+    source(optional, 'one', z.object({ quantity: z.number().optional() }));
+    target(optional, z.object({ quantity: z.number() }));
+    optional.connect('one', 'target', { map });
+    expect(optional.validate().issues[0]?.code).toBe('mapping-incompatible');
+  });
+
+  test('ambiguities provide usable suggestions without changing graph state', () => {
+    const sd = new SystemDesigner();
+    source(sd, 'one', z.object({ nested: z.object({ quantity: z.number() }) }));
+    source(sd, 'two', z.object({ other: z.object({ quantity: z.number() }) }));
+    target(sd, z.object({ quantity: z.number() }));
+    sd.connect('one', 'target').connect('two', 'target');
+    const issue = sd.validate().issues[0];
+    expect(issue?.suggestions).toHaveLength(2);
+    expect(issue?.suggestions?.[0]?.mapping).toEqual({
+      from: ['nested', 'quantity'],
+      to: ['quantity'],
+    });
+    expect(
+      sd
+        .getGraph()
+        .connections.every((connection) => connection.map === undefined),
+    ).toBe(true);
+  });
+});
+
+describe('wide input coverage', () => {
+  test('resolves 500 separately connected nested fields with repeated leaf names', () => {
+    const sd = new SystemDesigner();
+    const shapes: Record<string, z.ZodType> = {};
+    for (let index = 0; index < 500; index++) {
+      const key = `input${index}`;
+      const shape = z.object({ value: z.number() });
+      shapes[key] = shape;
+      source(sd, key, z.object({ [key]: shape }));
+      sd.connect(key, 'target');
+    }
+    target(sd, z.object(shapes));
+    const result = sd.validate();
+    expect(result.valid).toBe(true);
+    expect(result.bindings).toHaveLength(500);
+    expect(
+      new Set(result.bindings.map((binding) => binding.sourceNodeId)).size,
+    ).toBe(500);
+  });
+
+  test('an unverified candidate is not silently discarded in favor of a compatible one', () => {
+    const sd = new SystemDesigner();
+    source(sd, 'known', z.object({ code: z.string() }));
+    source(sd, 'uncertain', z.object({ code: z.string().regex(/^X/) }));
+    target(sd, z.object({ code: z.string() }));
+    sd.connect('known', 'target').connect('uncertain', 'target');
+    expect(sd.validate().status).toBe('unverified');
+    expect(sd.validate().bindings).toHaveLength(0);
   });
 });

@@ -34,7 +34,10 @@ Make system structure and the movement and transformation of data inspectable so
 - Optional header content belongs to the caller: React content or an HTMLElement supplied to render().
 - The viewer provides no automatic branding, tagline, or global footer.
 - Schema contracts are shown as an expandable field tree, not a raw JSON Schema dump.
-- Publishing, explicit field mappings, arbitrary React node-card content, and additional layout controls remain undecided.
+- Connections support explicit leaf/subtree field mappings to select sources and rename fields while preserving schema checks.
+- Inspector dismissal clears the selection and expands the canvas.
+- Stress examples cover large fan-in, ambiguity, and explicit resolution.
+- Publishing, arbitrary React node-card content, and additional layout controls remain undecided.
 
 ## Brand Commitments
 

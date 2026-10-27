@@ -1,5 +1,6 @@
 import type {
   DesignerConnection,
+  ConnectionOptions,
   DesignerGraph,
   DesignerNode,
   DesignerOptions,
@@ -31,13 +32,21 @@ export class SystemDesigner {
   connect(
     source: string,
     target: string,
-    options: { label?: string } = {},
+    options: ConnectionOptions = {},
   ): this {
     this.connections.push({
       id: `connection-${this.connections.length + 1}`,
       source,
       target,
       ...options,
+      ...(options.map
+        ? {
+            map: options.map.map((mapping) => ({
+              from: [...mapping.from],
+              to: [...mapping.to],
+            })),
+          }
+        : {}),
     });
     return this;
   }
@@ -46,7 +55,17 @@ export class SystemDesigner {
   getGraph(): DesignerGraph {
     return {
       nodes: this.nodes.map((node) => ({ ...node })),
-      connections: this.connections.map((connection) => ({ ...connection })),
+      connections: this.connections.map((connection) => ({
+        ...connection,
+        ...(connection.map
+          ? {
+              map: connection.map.map((mapping) => ({
+                from: [...mapping.from],
+                to: [...mapping.to],
+              })),
+            }
+          : {}),
+      })),
     };
   }
 

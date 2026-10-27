@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import {
   Background,
   BackgroundVariant,
@@ -96,7 +96,10 @@ function Viewer({
   header: HeaderContent;
 }) {
   const pickerId = useId();
-  const [selection, setSelection] = useState<Selection>(() => ({
+  const validationButton = useRef<HTMLButtonElement>(null);
+  const { fitView } = useReactFlow();
+  const isLargeGraph = graph.nodes.length > 12;
+  const [selection, setSelection] = useState<Selection | null>(() => ({
     type: 'node',
     id: initialNodeId ?? graph.nodes[0]?.id ?? '',
   }));
@@ -106,7 +109,7 @@ function Viewer({
     id: node.id,
     type: 'operation',
     position: positions.get(node.id) ?? { x: 0, y: 0 },
-    selected: selection.type === 'node' && selection.id === node.id,
+    selected: selection?.type === 'node' && selection.id === node.id,
     data: {
       definition: node,
       hasInput: graph.connections.some((edge) => edge.target === node.id),
@@ -120,7 +123,7 @@ function Viewer({
     .filter((edge) => positions.has(edge.source) && positions.has(edge.target))
     .map((edge, edgeIndex) => {
       const isSelected =
-        selection.type === 'connection' && selection.id === edge.id;
+        selection?.type === 'connection' && selection.id === edge.id;
       const sourcePosition = positions.get(edge.source);
       const targetPosition = positions.get(edge.target);
       const spansColumn =
@@ -144,11 +147,15 @@ function Viewer({
           ...(spansColumn
             ? {
                 bypassY:
-                  Math.min(
-                    ...[...positions.values()].map((position) => position.y),
-                  ) -
+                  (isLargeGraph
+                    ? sourcePosition.y
+                    : Math.min(
+                        ...[...positions.values()].map(
+                          (position) => position.y,
+                        ),
+                      )) -
                   80 -
-                  edgeIndex * 24,
+                  (isLargeGraph ? edgeIndex % 3 : edgeIndex) * 16,
               }
             : {}),
         },
@@ -170,6 +177,7 @@ function Viewer({
         <header className={s.header}>
           <ViewerHeader content={header} />
           <button
+            ref={validationButton}
             type="button"
             className={s.button}
             onClick={() => setSelection({ type: 'validation' })}
@@ -185,27 +193,44 @@ function Viewer({
                 : 'Unverified'}
           </button>
         </header>
-        <main className={s.main} aria-label={options.name ?? 'System graph'}>
+        <main
+          className={`${s.main} ${!selection ? s.mainExpanded : ''}`}
+          aria-label={options.name ?? 'System graph'}
+        >
           <div className={s.canvasColumn}>
-            <div className={s.mobilePicker}>
+            <div
+              className={`${s.mobilePicker} ${isLargeGraph ? s.largeGraphPicker : ''}`}
+            >
               <label htmlFor={pickerId}>Inspect</label>
               <select
                 id={pickerId}
                 className={s.inspectSelect}
                 value={
-                  selection.type === 'validation'
-                    ? 'validation'
-                    : `${selection.type}:${selection.id}`
+                  !selection
+                    ? ''
+                    : selection.type === 'validation'
+                      ? 'validation'
+                      : `${selection.type}:${selection.id}`
                 }
                 onChange={(event) => {
                   const value = event.target.value;
-                  if (value.startsWith('node:'))
-                    setSelection({ type: 'node', id: value.slice(5) });
-                  else if (value.startsWith('connection:'))
+                  if (value.startsWith('node:')) {
+                    const id = value.slice(5);
+                    setSelection({ type: 'node', id });
+                    if (isLargeGraph)
+                      void fitView({
+                        nodes: [{ id }],
+                        maxZoom: 1,
+                        padding: 0.5,
+                      });
+                  } else if (value.startsWith('connection:'))
                     setSelection({ type: 'connection', id: value.slice(11) });
                   else setSelection({ type: 'validation' });
                 }}
               >
+                <option value="" disabled>
+                  Select a node or connection
+                </option>
                 <optgroup label="Nodes">
                   {graph.nodes.map((node) => (
                     <option key={node.id} value={`node:${node.id}`}>
@@ -241,6 +266,7 @@ function Viewer({
                   nodesConnectable={false}
                   edgesReconnectable={false}
                   deleteKeyCode={null}
+                  onPaneClick={() => setSelection(null)}
                   selectionOnDrag={false}
                   elevateNodesOnSelect={false}
                   onNodeClick={(_, node) =>
@@ -265,7 +291,7 @@ function Viewer({
                   }}
                   fitView
                   fitViewOptions={{ padding: 0.14 }}
-                  minZoom={0.25}
+                  minZoom={0.02}
                   maxZoom={1.8}
                   style={{ background: t.color.canvas }}
                   colorMode="dark"
@@ -298,12 +324,18 @@ function Viewer({
               <CanvasControls />
             </div>
           </div>
-          <Inspector
-            graph={graph}
-            selection={selection}
-            result={result}
-            onSelect={setSelection}
-          />
+          {selection && (
+            <Inspector
+              graph={graph}
+              selection={selection}
+              result={result}
+              onSelect={setSelection}
+              onClose={() => {
+                setSelection(null);
+                validationButton.current?.focus({ preventScroll: true });
+              }}
+            />
+          )}
         </main>
       </div>
     </Tooltip.Provider>

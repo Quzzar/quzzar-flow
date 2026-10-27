@@ -1,4 +1,9 @@
-import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react';
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
+  useViewport,
+} from '@xyflow/react';
 import type { Edge, EdgeProps } from '@xyflow/react';
 import * as s from '../styles/viewer.css';
 
@@ -8,6 +13,7 @@ export type ConnectionFlowEdge = Edge<
 >;
 
 export function ConnectionEdge(props: EdgeProps<ConnectionFlowEdge>) {
+  const { zoom } = useViewport();
   const normal = getBezierPath(props);
   const lane = props.data?.bypassY;
   const [path, x, y] =
@@ -32,19 +38,21 @@ export function ConnectionEdge(props: EdgeProps<ConnectionFlowEdge>) {
         {...(props.style ? { style: props.style } : {})}
         interactionWidth={24}
       />
-      <EdgeLabelRenderer>
-        <button
-          type="button"
-          aria-label={`Inspect connection: ${String(label)}`}
-          className={`${s.edgeLabel} ${props.selected ? s.edgeLabelSelected : ''} nodrag nopan`}
-          style={{
-            transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
-          }}
-          onClick={props.data?.inspect}
-        >
-          {typeof label === 'string' ? label.replaceAll(', ', '\n') : label}
-        </button>
-      </EdgeLabelRenderer>
+      {(zoom >= 0.4 || props.selected) && (
+        <EdgeLabelRenderer>
+          <button
+            type="button"
+            aria-label={`Inspect connection: ${String(label)}`}
+            className={`${s.edgeLabel} ${props.selected ? s.edgeLabelSelected : ''} nodrag nopan`}
+            style={{
+              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
+            }}
+            onClick={props.data?.inspect}
+          >
+            {typeof label === 'string' ? label.replaceAll(', ', '\n') : label}
+          </button>
+        </EdgeLabelRenderer>
+      )}
     </>
   );
 }

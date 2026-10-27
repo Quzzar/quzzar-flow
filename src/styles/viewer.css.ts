@@ -194,6 +194,33 @@ export const main = style({
     [smallScreen]: { gridTemplateColumns: 'minmax(0, 1fr)', flex: 'none' },
   },
 });
+export const mainExpanded = style({ gridTemplateColumns: 'minmax(0, 1fr)' });
+export const closeInspector = style({
+  position: 'absolute',
+  top: t.space.md,
+  right: t.space.md,
+  zIndex: 2,
+});
+export const inspectorControls = style({
+  position: 'sticky',
+  top: 0,
+  height: 0,
+  zIndex: 3,
+});
+export const bindingGroup = style({
+  padding: `${t.space.sm} 0`,
+  borderBottom: `1px solid ${t.color.line}`,
+  fontSize: t.size.small,
+});
+globalStyle(`${bindingGroup} > summary`, { cursor: 'pointer' });
+export const bindingGroupBody = style({ paddingTop: t.space.md });
+export const mappingSuggestion = style({
+  margin: `${t.space.md} 0`,
+  padding: t.space.md,
+  background: t.color.canvas,
+  borderRadius: t.radius.small,
+});
+
 export const canvasColumn = style({
   minWidth: 0,
   display: 'flex',
@@ -213,6 +240,14 @@ export const mobilePicker = style({
       fontSize: t.size.small,
     },
   },
+});
+export const largeGraphPicker = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: t.space.md,
+  padding: `${t.space.sm} ${t.space.xxl}`,
+  background: t.color.panel,
+  borderBottom: `1px solid ${t.color.line}`,
 });
 export const inspectSelect = style({
   minWidth: 0,
@@ -266,6 +301,7 @@ export const controlDivider = style({
 });
 
 export const inspector = style({
+  position: 'relative',
   background: t.color.background,
   borderLeft: `1px solid ${t.color.line}`,
   overflow: 'auto',
@@ -279,7 +315,11 @@ export const inspector = style({
   },
 });
 export const inspectorHeader = style({
-  padding: `${t.space.xl} ${t.space.xl} ${t.space.lg}`,
+  position: 'sticky',
+  top: 0,
+  zIndex: 2,
+  background: t.color.background,
+  padding: `${t.space.xl} ${t.dimension.header} ${t.space.lg} ${t.space.xl}`,
   borderBottom: `1px solid ${t.color.subtleLine}`,
 });
 export const sectionTitle = style({
@@ -376,7 +416,7 @@ export const nodeDescription = style({
 
 export const contentTitle = style({
   color: t.color.muted,
-  fontSize: t.size.tiny,
+  fontSize: t.size.small,
   fontWeight: 500,
   marginBottom: t.space.sm,
 });

@@ -87,12 +87,23 @@ Give the mount element a height. `render()` accepts an element ID without `#`, o
 
 ## Examples
 
-The demo navigation switches among four graphs, each authored entirely through the package API:
+The demo navigation switches among seven graphs, each authored entirely through the package API:
 
 - [Order checkout](examples/checkout.ts): separate suppliers and nested-field inference, with JSON and a catalog table.
 - [Document review](examples/document-review.ts): fan-in and fan-out, text, schema blocks, and separate consumers.
 - [Image delivery](examples/image-delivery.ts): an image preview, metadata table, and manifest contract.
 - [Invalid contract](examples/invalid-contract.ts): ambiguous suppliers and a missing required field, with inspectable validation issues.
+- [Stress test and variants](examples/stress-test.ts): 48 sources, 144 required incoming fields, a 53-node graph, and ambiguous/resolved versions that add a competing supplier.
+
+Resolve an ambiguous input by mapping the intended output path on its existing connection:
+
+```ts
+sd.connect('order', 'total', {
+  map: [{ from: ['order', 'quantity'], to: ['quantity'] }],
+});
+```
+
+Mappings can select entire subtrees or rename fields. Explicit choices still undergo schema and optionality checks; they never silently switch to a different source. Full rules are in [contract inference](docs/contract-inference.md).
 
 The example chooser belongs to the demo page. It is not injected by `render()`.
 
@@ -120,7 +131,7 @@ await sd.render('diagram', {
 
 Input and output contracts use an expandable schema tree with readable types, required/optional property labels, nested object and array fields, and constraints such as minimum quantities. Raw JSON Schema is not dumped into the interface.
 
-Select a node for its overview and contracts. Select a connection to see its inferred consumed fields, the available upstream output, the consumer’s complete input contract, and inputs supplied by other connections. The viewer shows declared contracts and illustrative content, not live runtime payloads.
+Select a node for its overview and contracts. Close the inspector with its X to clear the selection and use the full canvas. Clicking the blank canvas also clears the selection. Large graphs expose an Inspect chooser that zooms to a selected node; wide layers use multiple columns, and edge labels appear as you zoom in or select a connection. Large input lists are grouped by source. Select a connection to see its inferred consumed fields, the available upstream output, the consumer’s complete input contract, and inputs supplied by other connections. The viewer shows declared contracts and illustrative content, not live runtime payloads.
 
 ## Visual content
 

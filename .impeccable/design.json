@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-27T21:51:00.735Z",
+  "title": "Design System: Quzzar System Designer",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Studio charcoal",
+        "tonalRamp": [
+          "oklch(15% 0.0039 264.23)",
+          "oklch(26% 0.0071 264.23)",
+          "oklch(38% 0.0103 264.23)",
+          "oklch(49% 0.0129 264.23)",
+          "oklch(61% 0.0129 264.23)",
+          "oklch(72% 0.0103 264.23)",
+          "oklch(84% 0.0064 264.23)",
+          "oklch(95% 0.0019 264.23)"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas charcoal",
+        "tonalRamp": [
+          "oklch(15% 0.0038 264.27)",
+          "oklch(26% 0.0070 264.27)",
+          "oklch(38% 0.0101 264.27)",
+          "oklch(49% 0.0127 264.27)",
+          "oklch(61% 0.0127 264.27)",
+          "oklch(72% 0.0101 264.27)",
+          "oklch(84% 0.0063 264.27)",
+          "oklch(95% 0.0019 264.27)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Muted panel",
+        "tonalRamp": [
+          "oklch(15% 0.0049 264.20)",
+          "oklch(26% 0.0090 264.20)",
+          "oklch(38% 0.0131 264.20)",
+          "oklch(49% 0.0164 264.20)",
+          "oklch(61% 0.0164 264.20)",
+          "oklch(72% 0.0131 264.20)",
+          "oklch(84% 0.0082 264.20)",
+          "oklch(95% 0.0025 264.20)"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised slate",
+        "tonalRamp": [
+          "oklch(15% 0.0061 260.61)",
+          "oklch(26% 0.0112 260.61)",
+          "oklch(38% 0.0163 260.61)",
+          "oklch(49% 0.0203 260.61)",
+          "oklch(61% 0.0203 260.61)",
+          "oklch(72% 0.0163 260.61)",
+          "oklch(84% 0.0102 260.61)",
+          "oklch(95% 0.0031 260.61)"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Hover slate",
+        "tonalRamp": [
+          "oklch(15% 0.0071 261.17)",
+          "oklch(26% 0.0130 261.17)",
+          "oklch(38% 0.0190 261.17)",
+          "oklch(49% 0.0237 261.17)",
+          "oklch(61% 0.0237 261.17)",
+          "oklch(72% 0.0190 261.17)",
+          "oklch(84% 0.0119 261.17)",
+          "oklch(95% 0.0036 261.17)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Structural slate",
+        "tonalRamp": [
+          "oklch(15% 0.0063 262.57)",
+          "oklch(26% 0.0116 262.57)",
+          "oklch(38% 0.0169 262.57)",
+          "oklch(49% 0.0212 262.57)",
+          "oklch(61% 0.0212 262.57)",
+          "oklch(72% 0.0169 262.57)",
+          "oklch(84% 0.0106 262.57)",
+          "oklch(95% 0.0032 262.57)"
+        ]
+      },
+      "subtleLine": {
+        "role": "neutral",
+        "displayName": "Quiet divider",
+        "tonalRamp": [
+          "oklch(15% 0.0055 258.37)",
+          "oklch(26% 0.0102 258.37)",
+          "oklch(38% 0.0148 258.37)",
+          "oklch(49% 0.0185 258.37)",
+          "oklch(61% 0.0185 258.37)",
+          "oklch(72% 0.0148 258.37)",
+          "oklch(84% 0.0092 258.37)",
+          "oklch(95% 0.0028 258.37)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Soft white",
+        "tonalRamp": [
+          "oklch(15% 0.0021 268.55)",
+          "oklch(26% 0.0039 268.55)",
+          "oklch(38% 0.0056 268.55)",
+          "oklch(49% 0.0070 268.55)",
+          "oklch(61% 0.0070 268.55)",
+          "oklch(72% 0.0056 268.55)",
+          "oklch(84% 0.0035 268.55)",
+          "oklch(95% 0.0011 268.55)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted silver",
+        "tonalRamp": [
+          "oklch(15% 0.0070 263.16)",
+          "oklch(26% 0.0129 263.16)",
+          "oklch(38% 0.0187 263.16)",
+          "oklch(49% 0.0234 263.16)",
+          "oklch(61% 0.0234 263.16)",
+          "oklch(72% 0.0187 263.16)",
+          "oklch(84% 0.0117 263.16)",
+          "oklch(95% 0.0035 263.16)"
+        ]
+      },
+      "dim": {
+        "role": "neutral",
+        "displayName": "Dim silver",
+        "tonalRamp": [
+          "oklch(15% 0.0077 262.06)",
+          "oklch(26% 0.0141 262.06)",
+          "oklch(38% 0.0206 262.06)",
+          "oklch(49% 0.0257 262.06)",
+          "oklch(61% 0.0257 262.06)",
+          "oklch(72% 0.0206 262.06)",
+          "oklch(84% 0.0128 262.06)",
+          "oklch(95% 0.0039 262.06)"
+        ]
+      },
+      "blue": {
+        "role": "primary",
+        "displayName": "Inspection blue",
+        "tonalRamp": [
+          "oklch(15% 0.0418 261.10)",
+          "oklch(26% 0.0766 261.10)",
+          "oklch(38% 0.1115 261.10)",
+          "oklch(49% 0.1393 261.10)",
+          "oklch(61% 0.1393 261.10)",
+          "oklch(72% 0.1115 261.10)",
+          "oklch(84% 0.0697 261.10)",
+          "oklch(95% 0.0209 261.10)"
+        ]
+      },
+      "blueSoft": {
+        "role": "primary",
+        "displayName": "Blue inset",
+        "tonalRamp": [
+          "oklch(15% 0.0175 260.22)",
+          "oklch(26% 0.0320 260.22)",
+          "oklch(38% 0.0466 260.22)",
+          "oklch(49% 0.0582 260.22)",
+          "oklch(61% 0.0582 260.22)",
+          "oklch(72% 0.0466 260.22)",
+          "oklch(84% 0.0291 260.22)",
+          "oklch(95% 0.0087 260.22)"
+        ]
+      },
+      "green": {
+        "role": "secondary",
+        "displayName": "Compatible mint",
+        "tonalRamp": [
+          "oklch(15% 0.0295 164.32)",
+          "oklch(26% 0.0540 164.32)",
+          "oklch(38% 0.0786 164.32)",
+          "oklch(49% 0.0982 164.32)",
+          "oklch(61% 0.0982 164.32)",
+          "oklch(72% 0.0786 164.32)",
+          "oklch(84% 0.0491 164.32)",
+          "oklch(95% 0.0147 164.32)"
+        ]
+      },
+      "amber": {
+        "role": "secondary",
+        "displayName": "Review amber",
+        "tonalRamp": [
+          "oklch(15% 0.0260 80.56)",
+          "oklch(26% 0.0477 80.56)",
+          "oklch(38% 0.0694 80.56)",
+          "oklch(49% 0.0868 80.56)",
+          "oklch(61% 0.0868 80.56)",
+          "oklch(72% 0.0694 80.56)",
+          "oklch(84% 0.0434 80.56)",
+          "oklch(95% 0.0130 80.56)"
+        ]
+      },
+      "red": {
+        "role": "secondary",
+        "displayName": "Issue rose",
+        "tonalRamp": [
+          "oklch(15% 0.0300 9.39)",
+          "oklch(26% 0.0550 9.39)",
+          "oklch(38% 0.0800 9.39)",
+          "oklch(49% 0.1000 9.39)",
+          "oklch(61% 0.1000 9.39)",
+          "oklch(72% 0.0800 9.39)",
+          "oklch(84% 0.0500 9.39)",
+          "oklch(95% 0.0150 9.39)"
+        ]
+      },
+      "dot": {
+        "role": "neutral",
+        "displayName": "Grid slate",
+        "tonalRamp": [
+          "oklch(15% 0.0068 264.22)",
+          "oklch(26% 0.0124 264.22)",
+          "oklch(38% 0.0180 264.22)",
+          "oklch(49% 0.0225 264.22)",
+          "oklch(61% 0.0225 264.22)",
+          "oklch(72% 0.0180 264.22)",
+          "oklch(84% 0.0113 264.22)",
+          "oklch(95% 0.0034 264.22)"
+        ]
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "Connection steel",
+        "tonalRamp": [
+          "oklch(15% 0.0118 260.32)",
+          "oklch(26% 0.0217 260.32)",
+          "oklch(38% 0.0316 260.32)",
+          "oklch(49% 0.0394 260.32)",
+          "oklch(61% 0.0394 260.32)",
+          "oklch(72% 0.0316 260.32)",
+          "oklch(84% 0.0197 260.32)",
+          "oklch(95% 0.0059 260.32)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Graph title",
+        "purpose": "Viewer toolbar title."
+      },
+      "body": {
+        "displayName": "Interface body",
+        "purpose": "General viewer language and operation names."
+      },
+      "section-title": {
+        "displayName": "Inspector title",
+        "purpose": "Inspector headings."
+      },
+      "label": {
+        "displayName": "Interface label",
+        "purpose": "Descriptions, tabs, and section labels."
+      },
+      "code": {
+        "displayName": "Contract syntax",
+        "purpose": "Paths, schemas, payloads, and data tables."
+      }
+    },
+    "breakpoints": [
+      {
+        "name": "mobile",
+        "value": "760px"
+      },
+      {
+        "name": "footer-hint",
+        "value": "1100px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Raised button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Validation and inspect actions.",
+      "html": "<button class=\"ds-button\" type=\"button\">Valid graph</button>",
+      "css": ".ds-button{font-family:\"Manrope Variable\",sans-serif;font-size:13px;line-height:1.6;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:34px;padding:6px 12px;border:1px solid #303641;border-radius:6px;background:#242a34;color:#eef0f5;font-weight:550;cursor:pointer}.ds-button:hover{background:#2a313d}.ds-button:focus-visible{outline:2px solid #75a7ff;outline-offset:4px;}@media(pointer:coarse){.ds-button{min-height:44px}}"
+    },
+    {
+      "name": "Icon button",
+      "kind": "button",
+      "refersTo": "icon-button",
+      "description": "Canvas controls and repository link treatment.",
+      "html": "<button class=\"ds-icon\" type=\"button\" aria-label=\"Zoom in\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M12 5v14M5 12h14\"/></svg></button>",
+      "css": ".ds-icon{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:0;border-radius:6px;background:transparent;color:#a4acbb;cursor:pointer}.ds-icon:hover{background:#2a313d;color:#eef0f5}.ds-icon:focus-visible{outline:2px solid #75a7ff;outline-offset:4px;}@media(pointer:coarse){.ds-icon{width:44px;height:44px}}"
+    },
+    {
+      "name": "Contract badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Informational graph label; issue labels use semantic red.",
+      "html": "<span class=\"ds-badge\">Contract graph</span>",
+      "css": ".ds-badge{font-family:\"Manrope Variable\",sans-serif;font-size:13px;line-height:1.6;font-size:11px;font-weight:550;color:#a4acbb;background:#242a34;padding:2px 8px;border-radius:6px;white-space:nowrap}"
+    },
+    {
+      "name": "Operation card",
+      "kind": "card",
+      "refersTo": "operation-card",
+      "description": "Library-owned name header with author-supplied center content; no contract footer.",
+      "html": "<article class=\"ds-card\"><header class=\"ds-card-header\">Calculate total</header><div class=\"ds-card-body\"><div class=\"ds-caption\">Illustrative result</div><pre class=\"ds-code\">{ \"totalCents\": 3600 }</pre></div></article>",
+      "css": ".ds-card{font-family:\"Manrope Variable\",sans-serif;font-size:13px;line-height:1.6;width:248px;max-width:100%;background:#1c2028;border:1px solid #303641;border-radius:12px;overflow:hidden;color:#eef0f5}.ds-card-header{padding:12px 16px;border-bottom:1px solid #303641;font-weight:600}.ds-card-body{padding:16px}.ds-caption{font-size:11px;font-weight:500;color:#a4acbb;margin-bottom:8px}.ds-code{font-family:\"IBM Plex Mono\",monospace;font-size:11px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}"
+    },
+    {
+      "name": "Inspect chooser",
+      "kind": "input",
+      "refersTo": "inspect-select",
+      "description": "Mobile selection route for readable inspector details.",
+      "html": "<label class=\"ds-picker\">Inspect<select class=\"ds-select\"><option>Calculate total</option><option>Connection: quantity</option><option>Graph validation</option></select></label>",
+      "css": ".ds-picker{font-family:\"Manrope Variable\",sans-serif;font-size:13px;line-height:1.6;display:flex;align-items:center;gap:12px;font-size:12px;color:#eef0f5}.ds-select{font-family:\"Manrope Variable\",sans-serif;font-size:14px;min-width:0;flex:1;min-height:44px;border-radius:6px;border:1px solid #303641;padding:0 8px;background:#14171d;color:#eef0f5;color-scheme:dark}.ds-select:focus-visible{outline:2px solid #75a7ff;outline-offset:4px;}"
+    },
+    {
+      "name": "Inspector tabs",
+      "kind": "nav",
+      "description": "Static preview of the Radix tab appearance; runtime provides keyboard and selection behavior.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\" aria-label=\"Node details\"><button class=\"ds-tab\" type=\"button\" role=\"tab\" aria-selected=\"true\">Details</button><button class=\"ds-tab\" type=\"button\" role=\"tab\" aria-selected=\"false\">Input</button><button class=\"ds-tab\" type=\"button\" role=\"tab\" aria-selected=\"false\">Output</button></div>",
+      "css": ".ds-tabs{display:flex;gap:20px;padding:0 20px;border-bottom:1px solid #303641}.ds-tab{font-family:\"Manrope Variable\",sans-serif;font-size:13px;line-height:1.6;border:0;background:transparent;color:#a4acbb;padding:12px 0;font-weight:500;border-bottom:2px solid transparent;cursor:pointer}.ds-tab[aria-selected=true]{color:#75a7ff;border-bottom-color:#75a7ff}.ds-tab:focus-visible{outline:2px solid #75a7ff;outline-offset:4px;}"
+    },
+    {
+      "name": "Connection payload label",
+      "kind": "button",
+      "refersTo": "connection-label",
+      "description": "Selectable connection label; selected state shares the blue edge treatment.",
+      "html": "<button class=\"ds-edge\" type=\"button\" aria-label=\"Inspect connection: totalCents, currency\">totalCents<br>currency</button>",
+      "css": ".ds-edge{border:1px solid #303641;border-radius:6px;padding:4px 8px;background:#171a20;color:#a4acbb;font-family:\"IBM Plex Mono\",monospace;font-size:11px;white-space:pre-line;text-align:center;cursor:pointer}.ds-edge[aria-pressed=true]{border-color:#75a7ff;color:#75a7ff}.ds-edge:focus-visible{outline:2px solid #75a7ff;outline-offset:4px;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Dark studio",
+    "overview": "Dark studio uses a charcoal canvas, muted panels, and blue accents. The graph is the central artifact; restrained chrome and compact labels leave space for inspecting relationships.\n\nManrope carries interface language, while IBM Plex Mono distinguishes contracts, paths, and illustrative payloads. Flat tonal surfaces and precise borders establish hierarchy. The inspector holds readable detail when the graph is zoomed out, especially on mobile.",
+    "keyCharacteristics": [
+      "Charcoal surfaces with a single blue interaction accent.",
+      "Compact cards with author-supplied content.",
+      "Monospaced contracts and explicit source-to-input paths.",
+      "A readable inspector alongside or below the canvas."
+    ],
+    "rules": [
+      {
+        "name": "The Inspection Accent Rule",
+        "body": "Blue identifies selection, focus, and inspectable contract structure; validation status uses its own labeled semantic colors.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tonal Depth Rule",
+        "body": "Express the current studio's depth with surface tones and borders; preserve the flat treatment of cards and controls.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use blue for selection, focus, paths, and contract types.",
+      "Do keep card headers and content separate with a structural divider.",
+      "Do keep detailed input and output contracts in the inspector.",
+      "Do preserve the mobile inspector chooser and readable stacked details."
+    ],
+    "donts": [
+      "Don't add graph editing or execution controls to the viewer.",
+      "Don't add library-owned input/output footers to operation cards.",
+      "Don't rely on miniature canvas text as the only mobile inspection route.",
+      "Don't treat the demo example navigation as embedded viewer chrome."
+    ]
+  }
+}

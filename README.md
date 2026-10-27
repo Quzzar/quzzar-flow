@@ -1,0 +1,149 @@
+# Quzzar System Designer
+
+Describe a system in code. Inspect its contracts in a read-only React Flow viewer.
+
+Each node has Zod input/output schemas, a processing description, and optional visual content. Validation resolves the fields supplied by incoming connections, including fields nested inside objects and inputs assembled from multiple sources. It does not execute node processing.
+
+## Run the example
+
+```sh
+bun install
+bun run dev
+```
+
+Open http://127.0.0.1:5173. The example in `examples/checkout.ts` uses the public API to join a nested order quantity and a separate catalog price into a total-calculation node.
+
+## Use the API
+
+The package is not published to npm yet. Build and pack it locally:
+
+```sh
+bun run build:lib
+bun pm pack
+```
+
+Install the resulting tarball in a web project using either package manager:
+
+```sh
+bun add /path/to/quzzar-system-designer-0.0.1.tgz
+# or
+npm install /path/to/quzzar-system-designer-0.0.1.tgz
+```
+
+React, React DOM, and Zod 4.6 are peer dependencies. Bun and Node can construct and validate graphs. Rendering requires a browser and a bundler that supports CSS imports, such as Vite.
+
+```ts
+import { z } from 'zod';
+import { SystemDesigner } from 'quzzar-system-designer';
+import 'quzzar-system-designer/style.css';
+
+const sd = new SystemDesigner({ name: 'Calculate a total' });
+
+sd.add({
+  id: 'order',
+  name: 'Order',
+  input: z.object({}),
+  output: z.object({ order: z.object({ quantity: z.number() }) }),
+  processing: 'Supply the requested quantity.',
+  render: [{ type: 'json', value: { order: { quantity: 2 } } }],
+});
+
+sd.add({
+  id: 'catalog',
+  name: 'Catalog',
+  input: z.object({}),
+  output: z.object({ priceCents: z.number() }),
+  processing: 'Supply the unit price in cents.',
+});
+
+sd.add({
+  id: 'total',
+  name: 'Calculate total',
+  input: z.object({ quantity: z.number(), priceCents: z.number() }),
+  output: z.object({ totalCents: z.number() }),
+  processing: 'Multiply quantity by priceCents.',
+  additionalInfo: 'Prices use integer cents in the application.',
+});
+
+sd.connect('order', 'total');
+sd.connect('catalog', 'total');
+
+const result = sd.validate();
+console.log(result.status, result.bindings, result.issues);
+
+// <div id="diagram" style="height: 720px"></div>
+const mounted = await sd.render('diagram', { initialNodeId: 'total' });
+// An HTMLElement works too: await sd.render(document.getElementById('diagram')!).
+if (mounted.status === 'error') {
+  console.error(mounted.message);
+} else {
+  // Later: mounted.unmount();
+}
+```
+
+Give the mount element a height. `render()` accepts an element ID without `#`, or an HTMLElement. Rendering a second time into the same element replaces the previous viewer. `unmount()` is idempotent. The viewer displays a snapshot; after changing the instance, call `render()` again to refresh it. Invalid and unverified graphs can still be rendered for inspection.
+
+## Examples
+
+The demo navigation switches among four graphs, each authored entirely through the package API:
+
+- [Order checkout](examples/checkout.ts): separate suppliers and nested-field inference, with JSON and a catalog table.
+- [Document review](examples/document-review.ts): fan-in and fan-out, text, schema blocks, and separate consumers.
+- [Image delivery](examples/image-delivery.ts): an image preview, metadata table, and manifest contract.
+- [Invalid contract](examples/invalid-contract.ts): ambiguous suppliers and a missing required field, with inspectable validation issues.
+
+The example chooser belongs to the demo page. It is not injected by `render()`.
+
+## What render() includes
+
+The package supplies the entire React Flow canvas, automatic layout, node cards, connection labels, zoom/pan controls, validation view, and inspector. Nodes cannot be dragged, connected, edited, or deleted in the viewer.
+
+Per-node configuration:
+
+- `name`: the visible node title.
+- `icon`: optional `braces`, `function`, `database`, `check`, `image`, `table`, `file`, or `none`. Omit it to choose an icon from the node’s position in the graph.
+- `render`: the content blocks that fill the center of the card. Supplying this array replaces the default processing-text preview.
+- `processing`: the explanation shown when inspecting the node; also the card preview when `render` is omitted.
+- `additionalInfo`: optional context shown in the inspector.
+
+The shared dark studio shell and card structure are built into this initial version. Arbitrary React components, custom node templates, and per-instance themes are not exposed yet. The header title and description come from the constructor options. There is no input/output text footer on the node cards.
+
+Select a node for its overview and contracts. Select a connection to see its inferred consumed fields, the available upstream output, the consumer’s complete input contract, and inputs supplied by other connections. The viewer shows declared contracts and illustrative content, not live runtime payloads.
+
+## Visual content
+
+`render` on a node is an optional array of declarative blocks:
+
+```ts
+render: [
+  { type: 'text', text: 'Display a useful explanation.' },
+  { type: 'json', title: 'Illustrative result', value: { totalCents: 3600 } },
+  {
+    type: 'schema',
+    title: 'Result schema',
+    schema: z.object({ totalCents: z.number() }),
+  },
+  { type: 'table', columns: ['Quantity', 'Price'], rows: [[2, 1800]] },
+  { type: 'image', src: '/diagram.png', alt: 'Description of the diagram' },
+];
+```
+
+Content is rendered inside the node and in its inspector. Values are illustrative content, not executed outputs or validated sample payloads. Image paths resolve relative to the embedding page. HTTP(S), local paths beginning with `/`, `./`, or `../`, and raster image data URLs are supported. Text and JSON are escaped; arbitrary HTML is not accepted.
+
+## Validation semantics
+
+See [contract inference](docs/contract-inference.md) for the supported rules and limitations. `valid` is true only for `status: 'valid'`. Check `status` to distinguish a proven mismatch (`invalid`) from constraints requiring manual verification (`unverified`). Each binding names the source node, source field path, destination field path, and connection.
+
+## Checks
+
+```sh
+bun run typecheck
+bun run lint
+bun test src/lib
+bun run test:e2e
+bun run build
+```
+
+Browser tests use Playwright Chromium. Install it with `bunx playwright install chromium` if needed. `build:lib` emits ESM, declarations, and CSS into `dist/`; `build:demo` emits the runnable example into `dist-demo/`.
+
+Project-scoped Impeccable tools are local development tooling. To install them for Codex, run `bunx impeccable install -y --providers=codex --scope=project`. They are excluded from Git and from the npm tarball.

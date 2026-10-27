@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Package embedding test</title>
+    <style>
+      body {
+        background: white;
+      }
+      #mount {
+        height: 720px;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="by-id">Mount by ID</button>
+    <button id="by-element">Mount by element</button>
+    <button id="unmount">Unmount</button>
+    <button id="missing">Missing target</button>
+    <p id="status" role="status"></p>
+    <div id="mount"></div>
+    <script type="module" src="./embedding.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+.agents/
+.impeccable/
+node_modules/
+dist/
+dist-demo/
+work/
+CLAUDE.md

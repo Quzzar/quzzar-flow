@@ -261,3 +261,57 @@ test('large examples expose 48 suppliers, ambiguous mappings, and an explicit re
   );
   expect(errors).toEqual([]);
 });
+
+test('group containers enclose measured members and preserve cross-group inspection', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/?example=grouped-system');
+  await expect(
+    page.getByRole('button', { name: 'Valid graph', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('.react-flow__node-domainGroup')).toHaveCount(3);
+  await expect(page.locator('.react-flow__node-operation')).toHaveCount(6);
+  for (const [group, children] of Object.entries({
+    frontend: ['checkout-form', 'confirmation-screen'],
+    backend: ['calculate', 'response'],
+    database: ['catalog', 'orders'],
+  })) {
+    await expect
+      .poll(async () => {
+        const parent = await page
+          .locator(`.react-flow__node[data-id="${group}"]`)
+          .boundingBox();
+        if (!parent) return false;
+        for (const id of children) {
+          const child = await page
+            .locator(`.react-flow__node[data-id="${id}"]`)
+            .boundingBox();
+          if (
+            !child ||
+            child.x < parent.x ||
+            child.y < parent.y ||
+            child.x + child.width > parent.x + parent.width + 1 ||
+            child.y + child.height > parent.y + parent.height + 1
+          )
+            return false;
+        }
+        return true;
+      })
+      .toBe(true);
+  }
+  await page
+    .getByRole('button', {
+      name: 'Inspect connection: Unit price',
+      exact: true,
+    })
+    .click({ timeout: 5000 });
+  await expect(page.getByLabel('Connection inspector')).toContainText(
+    'Product catalog → Calculate total',
+  );
+  await expect(page.getByLabel('Connection inspector')).toContainText(
+    'priceCents',
+  );
+  expect(errors).toEqual([]);
+});

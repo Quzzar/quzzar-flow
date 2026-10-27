@@ -1,4 +1,5 @@
 import { createGlobalTheme } from '@vanilla-extract/css';
+import { GROUP_COLORS } from '../lib/group-colors';
 
 export const tokens = createGlobalTheme(':root', {
   color: {
@@ -10,14 +11,14 @@ export const tokens = createGlobalTheme(':root', {
     line: '#303641',
     subtleLine: '#272d36',
     text: '#eef0f5',
-    muted: '#a4acbb',
+    muted: GROUP_COLORS.neutral,
     dim: '#929bab',
-    blue: '#75a7ff',
+    blue: GROUP_COLORS.blue,
     blueSolid: '#397cf6',
     blueSoft: '#253755',
-    green: '#83d7b2',
+    green: GROUP_COLORS.green,
     greenSoft: '#203b33',
-    amber: '#e6c387',
+    amber: GROUP_COLORS.amber,
     red: '#f19eab',
     redSoft: '#3e2832',
     dot: '#343a46',

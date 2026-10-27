@@ -4,6 +4,7 @@ export type {
   ContentBlock,
   NodeIcon,
   DesignerNode,
+  DesignerGroup,
   DesignerConnection,
   FieldMapping,
   ConnectionOptions,
@@ -18,3 +19,4 @@ export type {
   InputBinding,
   JsonValue,
 } from './lib/types';
+export type { GroupColor } from './lib/group-colors';

@@ -1,16 +1,8 @@
 import { Handle, Position } from '@xyflow/react';
 import type { Node, NodeProps } from '@xyflow/react';
-import {
-  Braces,
-  Check,
-  FunctionSquare,
-  Database,
-  Image,
-  Table2,
-  FileText,
-} from 'lucide-react';
 import type { DesignerNode } from '../lib/types';
 import { ContentBlocks } from './ContentBlocks';
+import { NodeSymbol } from './NodeSymbol';
 import * as s from '../styles/viewer.css';
 
 export type OperationFlowNode = Node<
@@ -27,19 +19,9 @@ export function OperationNode({
   data,
   selected,
 }: NodeProps<OperationFlowNode>) {
-  const icons = {
-    braces: Braces,
-    check: Check,
-    function: FunctionSquare,
-    database: Database,
-    image: Image,
-    table: Table2,
-    file: FileText,
-  };
   const icon =
     data.definition.icon ??
     (!data.hasInput ? 'braces' : !data.hasOutput ? 'check' : 'function');
-  const Icon = icon === 'none' ? undefined : icons[icon];
   return (
     <div className={`${s.node} ${selected ? s.nodeSelected : ''}`}>
       {data.hasInput && (
@@ -51,9 +33,9 @@ export function OperationNode({
         />
       )}
       <div className={s.nodeHeader}>
-        {Icon && (
+        {icon !== 'none' && (
           <span className={s.nodeIcon}>
-            <Icon size={17} />
+            <NodeSymbol name={icon} />
           </span>
         )}
         <h2 className={s.nodeName}>{data.definition.name}</h2>

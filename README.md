@@ -87,10 +87,11 @@ Give the mount element a height. `render()` accepts an element ID without `#`, o
 
 ## Examples
 
-The demo navigation switches among seven graphs, each authored entirely through the package API:
+The demo navigation switches among eight graphs, each authored entirely through the package API:
 
 - [Order checkout](examples/checkout.ts): separate suppliers and nested-field inference, with JSON and a catalog table.
 - [Document review](examples/document-review.ts): fan-in and fan-out, text, schema blocks, and separate consumers.
+- [Node groups](examples/grouped-system.ts): shaded frontend, backend, and database containers with cross-group connections.
 - [Image delivery](examples/image-delivery.ts): an image preview, metadata table, and manifest contract.
 - [Invalid contract](examples/invalid-contract.ts): ambiguous suppliers and a missing required field, with inspectable validation issues.
 - [Stress test and variants](examples/stress-test.ts): 48 sources, 144 required incoming fields, a 53-node graph, and ambiguous/resolved versions that add a competing supplier.
@@ -114,7 +115,7 @@ The package supplies the React Flow canvas, automatic layout, node cards, connec
 Per-node configuration:
 
 - `name`: the visible node title.
-- `icon`: optional `braces`, `function`, `database`, `check`, `image`, `table`, `file`, or `none`. Omit it to choose an icon from the node’s position in the graph.
+- `icon`: optional `braces`, `function`, `database`, `check`, `image`, `table`, `file`, `monitor`, `server`, `layers`, or `none`. Omit it to choose an icon from the node’s position in the graph.
 - `render`: the content blocks that fill the center of the card. Supplying this array replaces the default processing-text preview.
 - `processing`: the explanation shown when inspecting the node; also the card preview when `render` is omitted.
 - `additionalInfo`: optional context shown in the inspector.
@@ -130,6 +131,20 @@ await sd.render('diagram', {
 ```
 
 Input and output contracts use an expandable schema tree with readable types, required/optional property labels, nested object and array fields, and constraints such as minimum quantities. Raw JSON Schema is not dumped into the interface.
+
+Define visual boundaries with `addGroup`, then set `group` on each member node:
+
+```ts
+sd.addGroup({
+  id: 'backend',
+  name: 'Backend',
+  icon: 'server',
+  color: 'green',
+});
+// Include group: 'backend' in the nodes added with sd.add(...).
+```
+
+Groups accept the same icons as nodes. Their color can be `blue`, `green`, `amber`, `purple`, `neutral` (the default), or a six-digit hex color such as `#9081d7`. The color produces a subtle background, border, and readable heading. Groups are flat, arranged in declaration order, and size around their members. Ungrouped nodes remain outside the containers. Membership does not change contract inference: connections work within or across groups. Validation reports unknown groups, duplicate IDs, node/group ID collisions, and invalid colors. Group containers are read-only.
 
 Select a node for its overview and contracts. Close the inspector with its X to clear the selection and use the full canvas. Clicking the blank canvas also clears the selection. Large graphs expose an Inspect chooser that zooms to a selected node; wide layers use multiple columns, and edge labels appear as you zoom in or select a connection. Large input lists are grouped by source. Select a connection to see its inferred consumed fields, the available upstream output, the consumer’s complete input contract, and inputs supplied by other connections. The viewer shows declared contracts and illustrative content, not live runtime payloads.
 

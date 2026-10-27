@@ -1,5 +1,6 @@
 import type {
   DesignerConnection,
+  DesignerGroup,
   ConnectionOptions,
   DesignerGraph,
   DesignerNode,
@@ -16,6 +17,7 @@ const mountedElements = new WeakMap<Element, () => void>();
 export class SystemDesigner {
   readonly options: Readonly<DesignerOptions>;
   private readonly nodes: DesignerNode[] = [];
+  private readonly groups: DesignerGroup[] = [];
   private readonly connections: DesignerConnection[] = [];
 
   constructor(options: DesignerOptions = {}) {
@@ -25,6 +27,12 @@ export class SystemDesigner {
   /** Add an operation. Duplicate IDs are reported by validate(). */
   add(node: DesignerNode): this {
     this.nodes.push({ ...node });
+    return this;
+  }
+
+  /** Add a visual boundary. Group membership does not change data contracts. */
+  addGroup(group: DesignerGroup): this {
+    this.groups.push({ ...group });
     return this;
   }
 
@@ -54,6 +62,7 @@ export class SystemDesigner {
   /** Get a graph snapshot without exposing the instance’s node/edge collections. */
   getGraph(): DesignerGraph {
     return {
+      groups: this.groups.map((group) => ({ ...group })),
       nodes: this.nodes.map((node) => ({ ...node })),
       connections: this.connections.map((connection) => ({
         ...connection,

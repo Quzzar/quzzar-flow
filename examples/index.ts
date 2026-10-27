@@ -3,6 +3,7 @@ import { createDocumentReviewExample } from './document-review';
 import { createImageDeliveryExample } from './image-delivery';
 import { createInvalidContractExample } from './invalid-contract';
 import { createStressExample } from './stress-test';
+import { createGroupedSystemExample } from './grouped-system';
 
 export const EXAMPLES = [
   {
@@ -53,5 +54,12 @@ export const EXAMPLES = [
     source: 'stress-test.ts',
     create: () => createStressExample('resolved'),
     selectedNode: 'decision',
+  },
+  {
+    id: 'grouped-system',
+    name: 'Node groups',
+    source: 'grouped-system.ts',
+    create: createGroupedSystemExample,
+    selectedNode: 'calculate',
   },
 ];

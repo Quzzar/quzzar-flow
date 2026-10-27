@@ -37,6 +37,7 @@ globalStyle(`${studio} ::selection`, {
   background: t.color.blueSoft,
   color: t.color.text,
 });
+globalStyle(`${studio} .react-flow__edgelabel-renderer`, { zIndex: 3 });
 globalStyle(`${studio} svg`, { flexShrink: 0 });
 globalStyle(`${studio} ::-webkit-scrollbar`, {
   width: t.space.xs,
@@ -390,6 +391,29 @@ export const node = style({
   overflow: 'hidden',
   color: t.color.text,
   fontFamily: t.font.body,
+});
+export const groupContainer = style({
+  width: '100%',
+  height: '100%',
+  border: `1px solid ${t.color.line}`,
+  borderRadius: t.radius.node,
+});
+export const groupHeading = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: t.space.sm,
+  padding: `${t.space.xl} ${t.space.xxl}`,
+  color: t.color.text,
+});
+export const groupName = style({
+  minWidth: 0,
+  margin: 0,
+  fontFamily: t.font.body,
+  fontSize: t.size.medium,
+  fontWeight: 600,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 export const nodeSelected = style({ borderColor: t.color.blue });
 export const nodeHeader = style({

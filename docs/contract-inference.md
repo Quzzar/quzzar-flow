@@ -56,3 +56,7 @@ Custom refinements, overwrites, coercions, defaults, catch behavior, intersectio
 `valid` is true only in the first case. An invalid result may also contain unverified issues. `connectionsChecked` counts existing connections whose schemas could be described; use `issues` and `bindings` to assess actual coverage.
 
 Sources use an empty object as their input contract. Disconnected nodes with required input fields are reported as missing inputs. Cycles are displayed without simulating execution or claiming termination. Layout is deterministic and prioritizes acyclic flows. Wide layers are packed into columns of at most eight rows, and long edges use bypass lanes. The current stress fixture covers 48 sources and 144 required fan-in fields, with ambiguous and explicitly mapped variants. Dense cyclic layouts and arbitrary-size edge routing remain areas for later work.
+
+## Visual node groups
+
+`addGroup({ id, name, icon?, color? })` defines a visual container; a node joins it through `group: id`. Groups are not endpoints or schema scopes. Field matching and explicit mappings work unchanged across group boundaries. Group IDs must be nonempty, unique, and distinct from node IDs. An unknown node group or invalid group color is a validation error. Groups are one level deep; they do not imply execution order, ownership, or deployment behavior.

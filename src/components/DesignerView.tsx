@@ -1,4 +1,11 @@
-import { useId, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Background,
   BackgroundVariant,
@@ -6,6 +13,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  useNodesInitialized,
 } from '@xyflow/react';
 import { Maximize, Minus, Plus, GitFork, CheckCheck } from 'lucide-react';
 import { Tooltip } from 'radix-ui';
@@ -17,6 +25,10 @@ import type {
 } from '../lib/types';
 import { validateGraph } from '../lib/validate';
 import { COLUMN_WIDTH, layoutGraph } from '../lib/layout';
+import { layoutGroupedGraph } from '../lib/group-layout';
+import type { NodeSize } from '../lib/group-layout';
+import { GroupNode } from './GroupNode';
+import type { GroupFlowNode } from './GroupNode';
 import { OperationNode } from './OperationNode';
 import type { OperationFlowNode } from './OperationNode';
 import { ConnectionEdge } from './ConnectionEdge';
@@ -30,7 +42,8 @@ import '@xyflow/react/dist/style.css';
 import '@fontsource-variable/manrope';
 import '@fontsource/ibm-plex-mono/latin-400.css';
 
-const nodeTypes = { operation: OperationNode };
+type ViewerFlowNode = OperationFlowNode | GroupFlowNode;
+const nodeTypes = { operation: OperationNode, domainGroup: GroupNode };
 const edgeTypes = { connection: ConnectionEdge };
 
 function IconButton({
@@ -63,8 +76,8 @@ function IconButton({
   );
 }
 
-function CanvasControls() {
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
+function CanvasControls({ fitGraph }: { fitGraph: () => void }) {
+  const { zoomIn, zoomOut } = useReactFlow();
   return (
     <div className={s.canvasControls} aria-label="Canvas controls">
       <IconButton label="Zoom out" onClick={() => void zoomOut()}>
@@ -74,10 +87,7 @@ function CanvasControls() {
         <Plus size={16} />
       </IconButton>
       <div className={s.controlDivider} />
-      <IconButton
-        label="Fit graph to view"
-        onClick={() => void fitView({ padding: 0.14 })}
-      >
+      <IconButton label="Fit graph to view" onClick={fitGraph}>
         <Maximize size={16} />
       </IconButton>
     </div>
@@ -97,28 +107,73 @@ function Viewer({
 }) {
   const pickerId = useId();
   const validationButton = useRef<HTMLButtonElement>(null);
-  const { fitView } = useReactFlow();
+  const { fitView, fitBounds, getNodesBounds } = useReactFlow();
   const isLargeGraph = graph.nodes.length > 12;
-  const [selection, setSelection] = useState<Selection | null>(() => ({
-    type: 'node',
-    id: initialNodeId ?? graph.nodes[0]?.id ?? '',
-  }));
+  const [selection, setSelection] = useState<Selection | null>(() => {
+    const id = initialNodeId ?? graph.nodes[0]?.id;
+    return id ? { type: 'node', id } : null;
+  });
   const result = useMemo(() => validateGraph(graph), [graph]);
-  const positions = useMemo(() => layoutGraph(graph), [graph]);
-  const nodes: OperationFlowNode[] = graph.nodes.map((node) => ({
-    id: node.id,
-    type: 'operation',
-    position: positions.get(node.id) ?? { x: 0, y: 0 },
-    selected: selection?.type === 'node' && selection.id === node.id,
-    data: {
-      definition: node,
-      hasInput: graph.connections.some((edge) => edge.target === node.id),
-      hasOutput: graph.connections.some((edge) => edge.source === node.id),
-      hasError: result.issues.some(
-        (issue) => issue.nodeId === node.id && issue.kind === 'error',
-      ),
-    },
-  }));
+  const hasGroups = Boolean(graph.groups?.length);
+  const [nodeSizes, setNodeSizes] = useState<ReadonlyMap<string, NodeSize>>(
+    () => new Map(),
+  );
+  const groupedLayout = useMemo(
+    () => (hasGroups ? layoutGroupedGraph(graph, nodeSizes) : null),
+    [graph, hasGroups, nodeSizes],
+  );
+  const positions = useMemo(
+    () => groupedLayout?.positions ?? layoutGraph(graph),
+    [graph, groupedLayout],
+  );
+  const isInitialized = useNodesInitialized();
+  const hasFitGroups = useRef(false);
+  const operations: OperationFlowNode[] = graph.nodes.map((node) => {
+    const point = positions.get(node.id) ?? { x: 0, y: 0 };
+    const parent = node.group
+      ? groupedLayout?.containers.get(node.group)
+      : undefined;
+    return {
+      id: node.id,
+      type: 'operation',
+      position: parent
+        ? { x: point.x - parent.x, y: point.y - parent.y }
+        : point,
+      ...(parent && node.group
+        ? { parentId: node.group, extent: 'parent' as const }
+        : {}),
+      zIndex: 2,
+      selected: selection?.type === 'node' && selection.id === node.id,
+      data: {
+        definition: node,
+        hasInput: graph.connections.some((edge) => edge.target === node.id),
+        hasOutput: graph.connections.some((edge) => edge.source === node.id),
+        hasError: result.issues.some(
+          (issue) => issue.nodeId === node.id && issue.kind === 'error',
+        ),
+      },
+    };
+  });
+  const containers: GroupFlowNode[] = (graph.groups ?? []).flatMap((group) => {
+    const box = groupedLayout?.containers.get(group.id);
+    return box
+      ? [
+          {
+            id: group.id,
+            type: 'domainGroup' as const,
+            position: { x: box.x, y: box.y },
+            data: { definition: group },
+            style: { width: box.width, height: box.height },
+            selectable: false,
+            focusable: false,
+            draggable: false,
+            connectable: false,
+            zIndex: 0,
+          },
+        ]
+      : [];
+  });
+  const nodes: ViewerFlowNode[] = [...containers, ...operations];
   const edges: ConnectionFlowEdge[] = graph.connections
     .filter((edge) => positions.has(edge.source) && positions.has(edge.target))
     .map((edge, edgeIndex) => {
@@ -129,7 +184,9 @@ function Viewer({
       const spansColumn =
         sourcePosition &&
         targetPosition &&
-        targetPosition.x - sourcePosition.x > COLUMN_WIDTH;
+        (hasGroups
+          ? targetPosition.x < sourcePosition.x
+          : targetPosition.x - sourcePosition.x > COLUMN_WIDTH);
       const fields = result.bindings
         .filter((binding) => binding.connectionId === edge.id)
         .map(
@@ -140,6 +197,7 @@ function Viewer({
       return {
         ...edge,
         type: 'connection',
+        zIndex: hasGroups ? 1 : 0,
         selected: isSelected,
         data: {
           inspect: () => setSelection({ type: 'connection', id: edge.id }),
@@ -155,7 +213,8 @@ function Viewer({
                         ),
                       )) -
                   80 -
-                  (isLargeGraph ? edgeIndex % 3 : edgeIndex) * 16,
+                  (isLargeGraph ? edgeIndex % 3 : edgeIndex) *
+                    (hasGroups ? 48 : 16),
               }
             : {}),
         },
@@ -171,6 +230,41 @@ function Viewer({
         },
       };
     });
+  const lowestLane = Math.min(
+    0,
+    ...edges.map((edge) => edge.data?.bypassY ?? 0),
+  );
+  const fitGraph = useCallback(() => {
+    if (!hasGroups) {
+      void fitView({ padding: 0.14 });
+      return;
+    }
+    const bounds = getNodesBounds([
+      ...graph.nodes.map((node) => node.id),
+      ...(graph.groups ?? []).map((group) => group.id),
+    ]);
+    const top = Math.min(bounds.y, lowestLane - 40);
+    void fitBounds(
+      {
+        x: bounds.x - 96,
+        y: top,
+        width: bounds.width + 192,
+        height: bounds.y + bounds.height - top + 32,
+      },
+      { padding: 0.14 },
+    );
+  }, [hasGroups, fitView, fitBounds, getNodesBounds, graph, lowestLane]);
+  useEffect(() => {
+    if (
+      hasGroups &&
+      isInitialized &&
+      nodeSizes.size >= graph.nodes.length &&
+      !hasFitGroups.current
+    ) {
+      hasFitGroups.current = true;
+      fitGraph();
+    }
+  }, [hasGroups, isInitialized, nodeSizes.size, graph.nodes.length, fitGraph]);
   return (
     <Tooltip.Provider delayDuration={250}>
       <div className={s.studio}>
@@ -256,8 +350,8 @@ function Viewer({
               </select>
             </div>
             <div className={s.canvas}>
-              {graph.nodes.length > 0 ? (
-                <ReactFlow<OperationFlowNode, ConnectionFlowEdge>
+              {nodes.length > 0 ? (
+                <ReactFlow<ViewerFlowNode, ConnectionFlowEdge>
                   nodes={nodes}
                   edges={edges}
                   nodeTypes={nodeTypes}
@@ -269,13 +363,45 @@ function Viewer({
                   onPaneClick={() => setSelection(null)}
                   selectionOnDrag={false}
                   elevateNodesOnSelect={false}
+                  elevateEdgesOnSelect={false}
+                  zIndexMode="manual"
                   onNodeClick={(_, node) =>
-                    setSelection({ type: 'node', id: node.id })
+                    setSelection(
+                      node.type === 'operation'
+                        ? { type: 'node', id: node.id }
+                        : null,
+                    )
                   }
                   onEdgeClick={(_, edge) =>
                     setSelection({ type: 'connection', id: edge.id })
                   }
                   onNodesChange={(changes) => {
+                    if (
+                      hasGroups &&
+                      changes.some((change) => change.type === 'dimensions')
+                    ) {
+                      setNodeSizes((previous) => {
+                        const next = new Map(previous);
+                        let changed = false;
+                        for (const change of changes) {
+                          if (
+                            change.type !== 'dimensions' ||
+                            !change.dimensions ||
+                            !graph.nodes.some((node) => node.id === change.id)
+                          )
+                            continue;
+                          const old = previous.get(change.id);
+                          if (
+                            old?.height !== change.dimensions.height ||
+                            old.width !== change.dimensions.width
+                          ) {
+                            next.set(change.id, change.dimensions);
+                            changed = true;
+                          }
+                        }
+                        return changed ? next : previous;
+                      });
+                    }
                     const selected = changes.find(
                       (change) => change.type === 'select' && change.selected,
                     );
@@ -321,7 +447,7 @@ function Viewer({
                 {graph.nodes.length} nodes<span>·</span>
                 {graph.connections.length} connections
               </div>
-              <CanvasControls />
+              <CanvasControls fitGraph={fitGraph} />
             </div>
           </div>
           {selection && (

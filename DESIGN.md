@@ -19,6 +19,7 @@ colors:
   red: '#f19eab'
   dot: '#343a46'
   edge: '#69778e'
+  group-purple: '#bdadf4'
 typography:
   title:
     fontFamily: '"Manrope Variable", sans-serif'
@@ -85,6 +86,9 @@ components:
     rounded: '{rounded.small}'
     padding: '0 8px'
     height: '44px'
+  group-container:
+    backgroundColor: 'rgba(117, 167, 255, 0.07)'
+    rounded: '{rounded.node}'
   connection-label:
     backgroundColor: '{colors.canvas}'
     textColor: '{colors.muted}'
@@ -105,7 +109,7 @@ Manrope carries interface language, while IBM Plex Mono distinguishes contracts,
 **Key Characteristics:**
 
 - Charcoal surfaces with a single blue interaction accent.
-- Compact cards with author-supplied content.
+- Compact cards with author-supplied content and optional named group containers.
 - Monospaced contracts and explicit source-to-input paths.
 - A dismissible inspector alongside or below the canvas.
 
@@ -123,6 +127,9 @@ Cool charcoal neutrals establish the workspace; inspection blue marks interactiv
 - **Compatible mint** (`green`): verified compatibility status.
 - **Review amber** (`amber`): unverified contracts and schema warnings.
 - **Issue rose** (`red`): mismatches, node issue badges, and image-loading failure messages. Status always has accompanying text.
+- **Group violet** (`group-purple`): the purple option for authored group boundaries. Group colors also reuse inspection blue, compatible mint, review amber, and muted silver as categorical hues; they do not encode validation status inside group containers.
+
+Group colors accept named blue, green, amber, purple, or neutral values, or a validated six-digit hex color. Each chosen hue derives a faint fill (alpha 0.07), a stronger border (alpha 0.32), and heading ink blended halfway toward white. These translucent treatments keep the charcoal canvas visible.
 
 ### Neutral
 
@@ -134,7 +141,7 @@ Cool charcoal neutrals establish the workspace; inspection blue marks interactiv
 - **Soft white** (`text`): main content; **Muted silver** (`muted`): descriptions and labels; **Dim silver** (`dim`): canvas metadata.
 - **Grid slate** (`dot`) and **Connection steel** (`edge`): dotted canvas and unselected connectors.
 
-**The Inspection Accent Rule.** Blue identifies selection, focus, and inspectable contract structure; validation status uses its own labeled semantic colors.
+**The Inspection Accent Rule.** Blue identifies selection, focus, and inspectable contract structure; validation status uses its own labeled semantic colors. Authored group hues identify membership rather than interaction or validation state.
 
 ## Typography
 
@@ -161,13 +168,15 @@ The library owns a single header row, canvas controls, and inspector. It fills i
 
 Operation cards keep a fixed logical width (248px), and React Flow scales the graph through pan, zoom, and fit-to-view. The dotted grid uses a spacing (22px). Canvas controls sit at the lower left with a shared inset (24px); the canvas has a minimum height (380px). Nodes and connections can be selected, but nodes cannot be dragged, connected, reconnected, or deleted. Graph layers pack into columns with at most eight rows each. Zoom ranges from an overview minimum (0.02) to a detail maximum (1.8).
 
+Groups are flat, named containers arranged in declaration order. Member nodes retain their internal flow layout, with measured card sizes driving container bounds after rendering and content resizing. Group headings reserve a top band (72px); members have side and bottom clearance (32px), a vertical gap (48px), and groups have horizontal separation (112px). Ungrouped nodes remain outside the containers. Connections cross group boundaries; return connections route above the groups, and fit-to-view includes those return lanes.
+
 Graphs with more than twelve nodes show the Inspect chooser on desktop as well as mobile. Choosing a node in these graphs zooms to that node, giving a readable detail route from the overview. The chooser returns to its selection prompt when the inspector is closed.
 
 At the mobile breakpoint (maximum width 760px), the layout becomes one column and the header uses smaller horizontal insets. An Inspect chooser provides nodes, connections, and validation without requiring precise canvas taps. The canvas becomes a fixed overview region (460px tall), followed directly by a full-width inspector in normal document flow. Coarse pointers receive larger control targets (44px).
 
 Spacing follows the frontmatter scale. Header insets use `xxl` on desktop and `lg` on mobile; inspector sections use `xl`; node bodies use `lg`; node headers combine `md` vertically with `lg` horizontally. Content blocks stack with `lg` gaps. Tables scroll within their own width, and long code and binding paths wrap.
 
-The Vite consumer adds a wrapping example navigation above the library mount and supplies an h1 for the selected example through the header slot. Its examples, including large fan-in, ambiguous-field, and explicitly resolved stress cases, are authored in `examples/`; that navigation belongs to the demo. The viewer adds no brand strip, read-only label, repository link, automatic tagline, Contract graph badge, global status footer, or attribution badge.
+The Vite consumer adds a wrapping example navigation above the library mount and supplies an h1 for the selected example through the header slot. Its examples, including large fan-in, ambiguous-field, explicitly resolved stress cases, and grouped systems, are authored in `examples/`; that navigation belongs to the demo. The viewer adds no brand strip, read-only label, repository link, automatic tagline, Contract graph badge, global status footer, or attribution badge.
 
 ## Elevation & Depth
 
@@ -193,6 +202,12 @@ Muted rectangular issue badges appear in operation headers when a node has an er
 
 Operation cards have a panel background, structural border, and a name header with an optional configurable Lucide icon. The author supplies the center content as text, JSON, schema, table, or image blocks. When no render blocks are supplied, the processing description occupies the body. The library adds no input/output footer; contract details live in the inspector. A schema shown inside an authored block remains author content. Selection changes the card border to inspection blue.
 
+### Node groups
+
+Groups are author-defined through `addGroup({ id, name, icon, color })`, and nodes name their group by ID. They use the operation-card corner radius with a thin tinted border and transparent hue fill. The icon and heading occupy an inset row (20px vertically, 24px horizontally) with a compact gap (8px). The default icon is layers; monitor, server, database, and the other shared node symbols are available, including no icon. Default color is neutral.
+
+Group containers are not selectable, draggable, focusable, or connectable. Their operation cards remain the selectable objects, and all connections still join operations. Containers resize to measured members, so expanded schema content stays inside its group. Group headings identify membership without becoming separate inspector views. Invalid group colors are surfaced explicitly rather than silently replaced.
+
 ### Inputs / Fields
 
 The Inspect control is a labeled native select with a charcoal background, structural border, and larger readable type (14px). It appears on mobile and for large desktop graphs, and selects nodes, connections, or validation. There are no editable contract fields or graph-authoring forms in the viewer.
@@ -203,7 +218,7 @@ Inspector tabs use muted text and a transparent background. The active tab adds 
 
 ### Connections and contracts
 
-Bezier connections use a directional arrow. Connections that span intervening columns use a bypass lane to keep the path around intermediate cards. Unselected paths use connection steel with a thin stroke (1.4px); selection uses inspection blue with a stronger stroke (2px). The clickable interaction width is wider than the visible stroke (24px). Payload names appear in compact monospaced labels and split onto separate lines. The selected label gains a blue border and text. Labels appear at a zoom of at least 0.4 or when their connection is selected, reducing clutter in large overviews.
+Bezier connections use a directional arrow. In ungrouped graphs, connections that span intervening columns use a bypass lane around intermediate cards. Grouped graphs use upper bypass lanes for connections that return to an earlier group. Unselected paths use connection steel with a thin stroke (1.4px); selection uses inspection blue with a stronger stroke (2px). The clickable interaction width is wider than the visible stroke (24px). Payload names appear in compact monospaced labels and split onto separate lines. The selected label gains a blue border and text. Labels appear at a zoom of at least 0.4 or when their connection is selected, reducing clutter in large overviews.
 
 The connection inspector distinguishes consumed fields from available upstream output and the consumer's complete input contract. Explicitly configured bindings carry an explicit badge. Source output paths point to consumer input paths; fields supplied by other connections are listed separately. Contracts render as recursive field trees with monospaced names, blue type labels, and explicit required or optional labels for object fields. Native details/summary branches expand nested objects, array items and tuples, union alternatives, intersections, and negation. Top-level branches open initially in the inspector; compact card schemas start collapsed. Leaf rows reserve the same chevron space without showing an expand affordance. Open branches rotate their chevron and reveal children inset behind a structural left border.
 
@@ -221,6 +236,7 @@ Ambiguity issues in the validation inspector show read-only configuration sugges
 
 - **Do** use blue for selection, focus, paths, and contract types.
 - **Do** keep card headers and content separate with a structural divider.
+- **Do** keep group fills translucent, measure member content, and include return connections in fit-to-view.
 - **Do** keep detailed input and output contracts in the inspector.
 - **Do** preserve the mobile inspector chooser and readable stacked details.
 - **Do** keep the inspector close action reachable and clear selection when it closes.

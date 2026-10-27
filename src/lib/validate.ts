@@ -1,4 +1,5 @@
 import { describeSchema } from './schema';
+import { groupAppearance } from './group-colors';
 import type {
   DesignerGraph,
   InputBinding,
@@ -269,6 +270,32 @@ function fields(
 /** Validate graph references and directed contract compatibility without running node logic. */
 export function validateGraph(graph: DesignerGraph): ValidationResult {
   const issues: ValidationIssue[] = [];
+  const groups = new Set<string>();
+  for (const group of graph.groups ?? []) {
+    if (
+      !group.id.trim() ||
+      groups.has(group.id) ||
+      graph.nodes.some((node) => node.id === group.id)
+    )
+      issues.push({
+        kind: 'error',
+        code: 'group-id',
+        groupId: group.id,
+        path: '$.groups',
+        message:
+          'Group IDs must be nonempty, unique, and distinct from node IDs.',
+      });
+    groups.add(group.id);
+    const appearance = groupAppearance(group.color);
+    if (appearance.status === 'error')
+      issues.push({
+        kind: 'error',
+        code: 'group-color',
+        groupId: group.id,
+        path: '$.color',
+        message: appearance.message,
+      });
+  }
   const nodes = new Map<string, DesignerGraph['nodes'][number]>();
   const contracts = new Map<
     string,
@@ -279,6 +306,14 @@ export function validateGraph(graph: DesignerGraph): ValidationResult {
   >();
 
   for (const node of graph.nodes) {
+    if (node.group !== undefined && !groups.has(node.group))
+      issues.push({
+        kind: 'error',
+        code: 'missing-group',
+        nodeId: node.id,
+        path: '$.group',
+        message: `Group “${node.group}” does not exist.`,
+      });
     if (!node.id.trim() || nodes.has(node.id)) {
       issues.push({
         kind: 'error',

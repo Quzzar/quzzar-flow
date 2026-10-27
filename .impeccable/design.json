@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-27T23:05:42.986Z",
+  "generatedAt": "2026-10-27T23:23:26.103389+00:00",
   "title": "Design System: Quzzar System Designer",
   "extensions": {
     "colorMeta": {
@@ -241,6 +241,20 @@
           "oklch(84% 0.0197 260.32)",
           "oklch(95% 0.0059 260.32)"
         ]
+      },
+      "group-purple": {
+        "role": "secondary",
+        "displayName": "Group violet",
+        "tonalRamp": [
+          "oklch(15% 0.025 293)",
+          "oklch(26% 0.045 293)",
+          "oklch(38% 0.07 293)",
+          "oklch(49% 0.095 293)",
+          "oklch(61% 0.105 293)",
+          "oklch(72% 0.09 293)",
+          "oklch(84% 0.06 293)",
+          "oklch(95% 0.02 293)"
+        ]
       }
     },
     "typographyMeta": {
@@ -303,7 +317,7 @@
       "refersTo": "operation-card",
       "description": "Library-owned name header with author-supplied center content; no contract footer.",
       "html": "<article class=\"ds-card\"><header class=\"ds-card-header\">Calculate total</header><div class=\"ds-card-body\"><div class=\"ds-caption\">Illustrative result</div><pre class=\"ds-code\">{ \"totalCents\": 3600 }</pre></div></article>",
-      "css": ".ds-card{font-family:\"Manrope Variable\",sans-serif;font-size:13px;line-height:1.6;width:248px;max-width:100%;background:#1c2028;border:1px solid #303641;border-radius:12px;overflow:hidden;color:#eef0f5}.ds-card-header{padding:12px 16px;border-bottom:1px solid #303641;font-weight:600}.ds-card-body{padding:16px}.ds-caption{font-size:11px;font-weight:500;color:#a4acbb;margin-bottom:8px}.ds-code{font-family:\"IBM Plex Mono\",monospace;font-size:11px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}"
+      "css": ".ds-card{font-family:\"Manrope Variable\",sans-serif;font-size:13px;line-height:1.6;width:248px;max-width:100%;background:#1c2028;border:1px solid #303641;border-radius:12px;overflow:hidden;color:#eef0f5}.ds-card-header{padding:12px 16px;border-bottom:1px solid #303641;font-weight:600}.ds-card-body{padding:16px}.ds-caption{font-size:12px;font-weight:500;color:#a4acbb;margin-bottom:8px}.ds-code{font-family:\"IBM Plex Mono\",monospace;font-size:11px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}"
     },
     {
       "name": "Inspect chooser",
@@ -339,15 +353,16 @@
       "name": "Binding source group",
       "kind": "custom",
       "description": "Native source disclosures for node input lists with more than eight bindings.",
-      "html": "<details class=\"ds-binding-group\"><summary>Signal 01 <span class=\"ds-muted\">· 3 fields</span> <span class=\"ds-explicit\">explicit</span></summary><div class=\"ds-binding-body\"><div class=\"ds-binding-row\"><div class=\"ds-binding-path\">$[\"signals\"][\"signal01\"][\"value\"] <span class=\"ds-explicit\">explicit</span></div><div class=\"ds-binding-source\">← signal01 <code>$[\"signals\"][\"signal01\"][\"value\"]</code></div></div></div></details>",
+      "html": "<details class=\"ds-binding-group\"><summary>Signal 01 <span class=\"ds-muted\">\u00b7 3 fields</span> <span class=\"ds-explicit\">explicit</span></summary><div class=\"ds-binding-body\"><div class=\"ds-binding-row\"><div class=\"ds-binding-path\">$[\"signals\"][\"signal01\"][\"value\"] <span class=\"ds-explicit\">explicit</span></div><div class=\"ds-binding-source\">\u2190 signal01 <code>$[\"signals\"][\"signal01\"][\"value\"]</code></div></div></div></details>",
       "css": ".ds-binding-group{font-family:\"Manrope Variable\",sans-serif;line-height:1.6;color:#eef0f5;padding:8px 0;border-bottom:1px solid #303641;font-size:12px}.ds-binding-group>summary{cursor:pointer}.ds-binding-group>summary:focus-visible{outline:2px solid #75a7ff;outline-offset:4px}.ds-muted{color:#a4acbb}.ds-explicit{font-size:11px;font-weight:550;color:#a4acbb;background:#242a34;padding:2px 8px;border-radius:6px;white-space:nowrap}.ds-binding-body{padding-top:12px}.ds-binding-row{margin-bottom:16px;font-size:12px}.ds-binding-path{color:#75a7ff;font-family:\"IBM Plex Mono\",monospace;font-size:11px;overflow-wrap:anywhere}.ds-binding-source{display:flex;gap:6px;align-items:baseline;color:#a4acbb;margin-top:4px;overflow-wrap:anywhere}"
     },
     {
-      "name": "Inspector close action",
+      "name": "Node group",
       "kind": "custom",
-      "description": "Sticky close control above inspector scrolling content; runtime clears selection and returns focus to validation.",
-      "html": "<aside class=\"ds-inspector\"><div class=\"ds-inspector-controls\"><button class=\"ds-inspector-close\" type=\"button\" aria-label=\"Close inspector\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M18 6 6 18M6 6l12 12\"/></svg></button></div><header class=\"ds-inspector-heading\">Combine observations</header></aside>",
-      "css": ".ds-inspector{position:relative;min-width:0;overflow:auto;background:#14171d;color:#eef0f5;border-left:1px solid #303641;font-family:\"Manrope Variable\",sans-serif;line-height:1.6}.ds-inspector-controls{position:sticky;top:0;height:0;z-index:3}.ds-inspector-close{position:absolute;top:12px;right:12px;z-index:2;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:0;border-radius:6px;background:transparent;color:#a4acbb;cursor:pointer}.ds-inspector-close:hover{background:#2a313d;color:#eef0f5}.ds-inspector-close:focus-visible{outline:2px solid #75a7ff;outline-offset:4px}.ds-inspector-heading{position:sticky;top:0;z-index:2;background:#14171d;padding:20px 64px 16px 20px;border-bottom:1px solid #272d36;font-size:14px;font-weight:600}@media(pointer:coarse){.ds-inspector-close{width:44px;height:44px}}"
+      "refersTo": "group-container",
+      "description": "Flat authored group boundary with a tinted fill, tinted border, shared icon, and measured operation members. The preview shows the blue group appearance.",
+      "html": "<section class=\"ds-group\"><div class=\"ds-group-heading\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"3\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M8 21h8m-4-4v4\"/></svg><h2 class=\"ds-group-name\" title=\"Frontend\">Frontend</h2></div><div class=\"ds-group-example\"><article class=\"ds-group-card\"><header>Checkout form</header><p>Illustrative request</p></article></div></section>",
+      "css": ".ds-group{width:312px;max-width:100%;border:1px solid rgba(117,167,255,.32);border-radius:12px;background:rgba(117,167,255,.07);font-family:\"Manrope Variable\",sans-serif;line-height:1.6}.ds-group-heading{display:flex;align-items:center;gap:8px;padding:20px 24px;color:rgb(186,211,255)}.ds-group-heading svg{flex-shrink:0}.ds-group-name{min-width:0;margin:0;font-family:\"Manrope Variable\",sans-serif;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-group-example{padding:0 32px 32px}.ds-group-card{background:#1c2028;border:1px solid #303641;border-radius:12px;overflow:hidden;color:#eef0f5;font-size:13px}.ds-group-card header{padding:12px 16px;border-bottom:1px solid #303641;font-weight:600}.ds-group-card p{margin:0;padding:16px;color:#a4acbb;font-size:12px}"
     }
   ],
   "narrative": {
@@ -355,14 +370,14 @@
     "overview": "Dark studio uses a charcoal canvas, muted panels, and blue accents. The graph is the central artifact; restrained chrome and compact labels leave space for inspecting relationships.\n\nManrope carries interface language, while IBM Plex Mono distinguishes contracts, paths, and illustrative payloads. Flat tonal surfaces and precise borders establish hierarchy. The inspector holds readable detail when the graph is zoomed out, especially on mobile.",
     "keyCharacteristics": [
       "Charcoal surfaces with a single blue interaction accent.",
-      "Compact cards with author-supplied content.",
+      "Compact cards with author-supplied content and optional named group containers.",
       "Monospaced contracts and explicit source-to-input paths.",
       "A dismissible inspector alongside or below the canvas."
     ],
     "rules": [
       {
         "name": "The Inspection Accent Rule",
-        "body": "Blue identifies selection, focus, and inspectable contract structure; validation status uses its own labeled semantic colors.",
+        "body": "Blue identifies selection, focus, and inspectable contract structure; validation status uses its own labeled semantic colors. Authored group hues identify membership rather than interaction or validation state.",
         "section": "colors"
       },
       {
@@ -374,6 +389,7 @@
     "dos": [
       "Do use blue for selection, focus, paths, and contract types.",
       "Do keep card headers and content separate with a structural divider.",
+      "Do keep group fills translucent, measure member content, and include return connections in fit-to-view.",
       "Do keep detailed input and output contracts in the inspector.",
       "Do preserve the mobile inspector chooser and readable stacked details.",
       "Do keep the inspector close action reachable and clear selection when it closes.",

@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import type { ReactNode } from 'react';
+import type { GroupColor } from './group-colors';
 
 export type JsonValue =
   string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
@@ -21,12 +22,23 @@ export type NodeIcon =
   | 'image'
   | 'table'
   | 'file'
+  | 'monitor'
+  | 'server'
+  | 'layers'
   | 'none';
+
+export type DesignerGroup = {
+  id: string;
+  name: string;
+  icon?: NodeIcon;
+  color?: GroupColor;
+};
 
 export type DesignerNode = {
   id: string;
   name: string;
   icon?: NodeIcon;
+  group?: string;
   input: z.ZodType;
   output: z.ZodType;
   processing: string;
@@ -57,6 +69,7 @@ export type ValidationIssue = {
   message: string;
   path: string;
   nodeId?: string;
+  groupId?: string;
   connectionId?: string;
   suggestions?: MappingSuggestion[];
 };
@@ -81,6 +94,7 @@ export type InputBinding = {
 };
 
 export type DesignerGraph = {
+  groups?: DesignerGroup[];
   nodes: DesignerNode[];
   connections: DesignerConnection[];
 };

@@ -17,7 +17,7 @@ import type {
 } from '../lib/types';
 import { validateGraph } from '../lib/validate';
 import { COLUMN_WIDTH, layoutGraph } from '../lib/layout';
-import { layoutGroupedGraph } from '../lib/group-layout';
+import { GROUP_COLUMN_WIDTH, layoutGroupedGraph } from '../lib/group-layout';
 import type { NodeSize } from '../lib/group-layout';
 import { GroupNode } from './GroupNode';
 import type { GroupFlowNode } from './GroupNode';
@@ -194,6 +194,7 @@ function Viewer({
           (other) =>
             other.source === edge.source && other.target === edge.target,
         );
+      const internalLane = groupedLayout?.lanes.get(edge.id);
       const spansColumn =
         sourcePosition &&
         targetPosition &&
@@ -201,7 +202,7 @@ function Viewer({
           (hasGroups
             ? targetPosition.x < sourcePosition.x ||
               (sourceGroup === targetGroup &&
-                targetPosition.x - sourcePosition.x > COLUMN_WIDTH)
+                targetPosition.x - sourcePosition.x > GROUP_COLUMN_WIDTH)
             : targetPosition.x - sourcePosition.x > COLUMN_WIDTH));
       const fields = result.bindings
         .filter((binding) => binding.connectionId === edge.id)
@@ -218,21 +219,23 @@ function Viewer({
         data: {
           inspect: () => setSelection({ type: 'connection', id: edge.id }),
           fields,
-          ...(spansColumn
-            ? {
-                bypassY:
-                  (isLargeGraph
-                    ? sourcePosition.y
-                    : Math.min(
-                        ...[...positions.values()].map(
-                          (position) => position.y,
-                        ),
-                      )) -
-                  80 -
-                  (isLargeGraph ? edgeIndex % 3 : edgeIndex) *
-                    (hasGroups ? 48 : 16),
-              }
-            : {}),
+          ...(internalLane !== undefined
+            ? { bypassY: internalLane }
+            : spansColumn
+              ? {
+                  bypassY:
+                    (isLargeGraph
+                      ? sourcePosition.y
+                      : Math.min(
+                          ...[...positions.values()].map(
+                            (position) => position.y,
+                          ),
+                        )) -
+                    80 -
+                    (isLargeGraph ? edgeIndex % 3 : edgeIndex) *
+                      (hasGroups ? 48 : 16),
+                }
+              : {}),
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,

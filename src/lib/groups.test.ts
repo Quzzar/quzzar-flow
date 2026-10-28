@@ -1,3 +1,4 @@
+import { createDatabaseDesignExample } from '../../examples/database-design';
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
 import { SystemDesigner } from './system-designer';
@@ -135,4 +136,19 @@ describe('nested containment', () => {
       4,
     );
   });
+});
+
+test('table layouts reserve contained routing lanes and wider card gaps', () => {
+  const sd = createDatabaseDesignExample();
+  const layout = layoutGroupedGraph(sd.getGraph(), new Map());
+  const group = layout.containers.get('tables');
+  const users = layout.positions.get('users');
+  const projects = layout.positions.get('projects');
+  if (!group || !users || !projects) throw new Error('Expected table layout');
+  expect(projects.x - users.x - 248).toBeGreaterThanOrEqual(192);
+  expect(layout.lanes.size).toBe(2);
+  for (const y of layout.lanes.values()) {
+    expect(y).toBeGreaterThan(group.y + 44);
+    expect(y).toBeLessThan(users.y - 32);
+  }
 });

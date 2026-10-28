@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-28T17:21:33.523980+00:00",
+  "generatedAt": "2026-10-28T17:27:10.843645+00:00",
   "title": "Design System: Quzzar System Designer",
   "extensions": {
     "colorMeta": {
@@ -330,8 +330,8 @@
       "name": "Connection label",
       "kind": "button",
       "refersTo": "connection-label",
-      "description": "Arbitrary authored label on a standard directional connection; wraps within 104px. Visible at zoom >= 0.4 or selection, with shared blue selected treatment.",
-      "html": "<button class=\"ds-edge\" type=\"button\" aria-label=\"Inspect connection: M:M membership\">M:M \u00b7 membership</button>",
+      "description": "Arbitrary authored label on a standard directional connection; wraps within 104px. Rendered at every zoom level and scaled with the graph, with shared blue selected treatment.",
+      "html": "<button class=\"ds-edge\" type=\"button\" aria-label=\"Inspect connection: User memberships (1:M)\">User memberships (1:M)</button>",
       "css": ".ds-edge{border:1px solid #303641;border-radius:6px;padding:4px 8px;background:#171a20;color:#a4acbb;font-family:\"IBM Plex Mono\",monospace;font-size:11px;white-space:normal;max-width:104px;overflow-wrap:anywhere;text-align:center;cursor:pointer}.ds-edge[aria-pressed=true]{border-color:#75a7ff;color:#75a7ff}.ds-edge:focus-visible{outline:2px solid #75a7ff;outline-offset:4px}"
     },
     {
@@ -352,7 +352,7 @@
       "name": "Node group",
       "kind": "custom",
       "refersTo": "group-container",
-      "description": "Nested authored containers with measured bounds, tinted fills and shared icons. Parent groups render before their children; pan, zoom, and fit navigate grouped content.",
+      "description": "Nested authored containers with measured bounds, tinted fills and shared icons. Member columns have 440px spacing, rows have 80px gaps, and same-group bypass lanes stay inside container bounds.",
       "html": "<section class=\"ds-group ds-group-backend\"><div class=\"ds-group-heading\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"3\" width=\"20\" height=\"7\" rx=\"2\"/><rect x=\"2\" y=\"14\" width=\"20\" height=\"7\" rx=\"2\"/></svg><h2 class=\"ds-group-name\" title=\"Backend\">Backend</h2></div><div class=\"ds-group-example\"><section class=\"ds-group ds-group-inner\"><div class=\"ds-group-heading\"><h2 class=\"ds-group-name\" title=\"API\">API</h2></div><div class=\"ds-group-example\"><article class=\"ds-group-card\"><header>Authorize task creation</header><p>Verify actor and project membership.</p></article></div></section></div></section>",
       "css": ".ds-group{box-sizing:border-box;width:312px;max-width:100%;border:1px solid rgba(117,167,255,.32);border-radius:12px;background:rgba(117,167,255,.07);font-family:\"Manrope Variable\",sans-serif;line-height:1.6}.ds-group-heading{display:flex;align-items:center;gap:8px;padding:20px 24px;color:rgb(186,211,255)}.ds-group-heading svg{flex-shrink:0}.ds-group-name{min-width:0;margin:0;font-family:\"Manrope Variable\",sans-serif;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-group-example{padding:0 32px 32px}.ds-group-card{background:#1c2028;border:1px solid #303641;border-radius:12px;overflow:hidden;color:#eef0f5;font-size:13px}.ds-group-card header{padding:12px 16px;border-bottom:1px solid #303641;font-weight:600}.ds-group-card p{margin:0;padding:16px;color:#a4acbb;font-size:12px}.ds-group-backend{width:390px;background:rgba(131,215,178,.07);border-color:rgba(131,215,178,.32)}.ds-group-backend>.ds-group-heading{color:rgb(193,235,217)}.ds-group-inner{width:100%;background:rgba(164,172,187,.07);border-color:rgba(164,172,187,.32)}.ds-group-inner>.ds-group-heading{color:rgb(210,214,221)}"
     }
@@ -386,7 +386,7 @@
       "Do keep detailed input and output contracts in the inspector.",
       "Do preserve direct graph selection, keyboard focus, and readable stacked inspector details on mobile.",
       "Do keep the inspector close action reachable and clear selection when it closes.",
-      "Do use source-group disclosures for large binding lists and hide unselected edge labels at overview zoom.",
+      "Do use source-group disclosures for large binding lists and keep connection labels rendered at every zoom level.",
       "Do let callers own header content and use the field tree for contract inspection."
     ],
     "donts": [

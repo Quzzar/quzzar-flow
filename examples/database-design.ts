@@ -19,6 +19,6 @@ export function createDatabaseDesignExample(): SystemDesigner {
   });
   addTaskTables(sd, 'tables', true);
   addTaskConnections(sd);
-  sd.connect('users', 'profiles', { label: '1:1 · profile' });
+  sd.connect('users', 'profiles', { label: 'User profile (1:1)' });
   return sd;
 }

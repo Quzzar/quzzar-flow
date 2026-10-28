@@ -38,7 +38,7 @@ The database example has five tables and six labeled connections. Each table use
 
 The many-to-many association and its two join-table relationships deliberately show both the conceptual model and its physical representation. Memberships declares a composite primary key `(userId, projectId)`. Project ownership is a different association from membership, even though both connect users and projects.
 
-The labels in this example use `1:1`, `1:M`, and `M:M` notation. These are ordinary strings chosen by the example author. The package neither interprets them nor enforces database semantics. Select a connection to inspect its endpoints and contracts. Real foreign keys, uniqueness, indexes, cascading actions, migrations, and row-level authorization remain implementation concerns.
+The labels use descriptive names such as `User memberships (1:M)` and `Project membership (M:M)`. Parallel and long table connections use reserved lanes inside Application tables; columns and rows leave room for labels. Labels remain rendered at every zoom level and scale with the graph. These are ordinary strings chosen by the example author. The package neither interprets them nor enforces database semantics. Select a connection to inspect its endpoints and contracts. Real foreign keys, uniqueness, indexes, cascading actions, migrations, and row-level authorization remain implementation concerns.
 
 ## Author nested groups
 

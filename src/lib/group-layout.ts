@@ -1,5 +1,9 @@
-import { layoutGraph } from './layout';
+import { COLUMN_WIDTH, layoutGraph } from './layout';
 import type { DesignerGraph } from './types';
+
+export const GROUP_COLUMN_WIDTH = 440;
+const GROUP_ROW_GAP = 80;
+const INTERNAL_LANE_GAP = 64;
 
 export type NodeSize = { width: number; height: number };
 export type GroupBounds = {
@@ -41,6 +45,7 @@ export function layoutGroupedGraph(
   const parents = groupParents(graph);
   const positions = new Map<string, { x: number; y: number }>();
   const containers = new Map<string, GroupBounds>();
+  const lanes = new Map<string, number>();
   const groups = graph.groups ?? [];
   function place(
     groupId: string | undefined,
@@ -53,20 +58,48 @@ export function layoutGroupedGraph(
         : node.group === groupId,
     );
     const ids = new Set(members.map((node) => node.id));
+    const internalConnections = graph.connections.filter(
+      (edge) => ids.has(edge.source) && ids.has(edge.target),
+    );
     const local = layoutGraph({
       nodes: members,
-      connections: graph.connections.filter(
-        (edge) => ids.has(edge.source) && ids.has(edge.target),
-      ),
+      connections: internalConnections,
     });
+    const routed =
+      groupId === undefined
+        ? []
+        : internalConnections.filter((edge, index) => {
+            const source = local.get(edge.source);
+            const target = local.get(edge.target);
+            const parallel = internalConnections
+              .slice(0, index)
+              .some(
+                (other) =>
+                  other.source === edge.source && other.target === edge.target,
+              );
+            return (
+              source &&
+              target &&
+              (parallel ||
+                target.x < source.x ||
+                target.x - source.x > COLUMN_WIDTH)
+            );
+          });
+    routed.forEach((edge, index) =>
+      lanes.set(edge.id, originY + 84 + index * INTERNAL_LANE_GAP),
+    );
     const columns = new Map<number, string[]>();
     for (const [id, point] of local)
       columns.set(point.x, [...(columns.get(point.x) ?? []), id]);
     let width = groupId === undefined ? 0 : 312;
     let height = groupId === undefined ? 0 : 120;
     const inset = groupId === undefined ? 0 : 32;
-    const top = groupId === undefined ? 0 : 72;
-    for (const [x, children] of columns) {
+    const top =
+      groupId === undefined
+        ? 0
+        : 72 + (routed.length ? routed.length * INTERNAL_LANE_GAP + 32 : 0);
+    for (const [localX, children] of columns) {
+      const x = (localX / COLUMN_WIDTH) * GROUP_COLUMN_WIDTH;
       children.sort((a, b) => (local.get(a)?.y ?? 0) - (local.get(b)?.y ?? 0));
       let y = top;
       for (const id of children) {
@@ -74,7 +107,7 @@ export function layoutGroupedGraph(
         positions.set(id, { x: originX + inset + x, y: originY + y });
         width = Math.max(width, inset + x + size.width + inset);
         height = Math.max(height, y + size.height + inset);
-        y += size.height + 48;
+        y += size.height + GROUP_ROW_GAP;
       }
     }
     let nextX = members.length ? width + 80 : inset;
@@ -90,7 +123,7 @@ export function layoutGroupedGraph(
       containers.set(child.id, { x, y, ...size });
       width = Math.max(width, nextX + size.width + inset);
       height = Math.max(height, top + size.height + inset);
-      nextX += size.width + (groupId === undefined ? 112 : 48);
+      nextX += size.width + (groupId === undefined ? 144 : 80);
     }
     return { width, height };
   }
@@ -107,5 +140,5 @@ export function layoutGroupedGraph(
     }
   }
   order(undefined);
-  return { positions, containers: ordered, parents };
+  return { positions, containers: ordered, parents, lanes };
 }

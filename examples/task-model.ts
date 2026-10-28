@@ -100,9 +100,9 @@ export function addTaskTables(
 
 /** The join table is the concrete implementation of the conceptual users/projects association. */
 export function addTaskConnections(sd: SystemDesigner) {
-  sd.connect('users', 'projects', { label: '1:M · owns' });
-  sd.connect('projects', 'tasks', { label: '1:M · contains' });
-  sd.connect('users', 'memberships', { label: '1:M · user' });
-  sd.connect('projects', 'memberships', { label: '1:M · project' });
-  sd.connect('users', 'projects', { label: 'M:M · membership' });
+  sd.connect('users', 'projects', { label: 'Owns projects (1:M)' });
+  sd.connect('projects', 'tasks', { label: 'Contains tasks (1:M)' });
+  sd.connect('users', 'memberships', { label: 'User memberships (1:M)' });
+  sd.connect('projects', 'memberships', { label: 'Project memberships (1:M)' });
+  sd.connect('users', 'projects', { label: 'Project membership (M:M)' });
 }

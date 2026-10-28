@@ -55,7 +55,7 @@ Custom refinements, overwrites, coercions, defaults, catch behavior, intersectio
 
 `valid` is true only in the first case. An invalid result may also contain unverified issues. `connectionsChecked` counts existing connections whose schemas could be described; use `issues` and `bindings` to assess actual coverage.
 
-Sources use an empty object as their input contract. Disconnected nodes with required input fields are reported as missing inputs. Cycles are displayed without simulating execution or claiming termination. Layout is deterministic and prioritizes acyclic flows. Wide layers are packed into columns of at most eight rows, and long edges use bypass lanes. The current stress fixture covers 48 sources and 144 required fan-in fields, with ambiguous and explicitly mapped variants. Dense cyclic layouts and arbitrary-size edge routing remain areas for later work.
+Sources use an empty object as their input contract. Disconnected nodes with required input fields are reported as missing inputs. Cycles are displayed without simulating execution or claiming termination. Layout is deterministic and prioritizes acyclic flows. Wide layers are packed into columns of at most eight rows, and long edges use bypass lanes. Within a group, reserved routing lanes keep long and parallel connections inside the container. The current stress fixture covers 48 sources and 144 required fan-in fields, with ambiguous and explicitly mapped variants. Dense cyclic layouts and arbitrary-size edge routing remain areas for later work.
 
 ## Visual node groups
 

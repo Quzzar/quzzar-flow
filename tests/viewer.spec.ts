@@ -409,14 +409,43 @@ test('database connections display arbitrary labels without interpreting them', 
         .boundingBox();
       const label = await page
         .getByRole('button', {
-          name: 'Inspect connection: M:M · membership',
+          name: 'Inspect connection: Project membership (M:M)',
           exact: true,
         })
         .boundingBox();
       return Boolean(canvas && label && label.y >= canvas.y);
     })
     .toBe(true);
+  const group = await page
+    .locator('.react-flow__node[data-id="tables"]')
+    .boundingBox();
+  const membership = await page
+    .getByRole('button', {
+      name: 'Inspect connection: Project membership (M:M)',
+      exact: true,
+    })
+    .boundingBox();
+  if (!group || !membership)
+    throw new Error('Expected group and membership label');
+  expect(membership.x).toBeGreaterThan(group.x);
+  expect(membership.y).toBeGreaterThan(group.y);
+  expect(membership.x + membership.width).toBeLessThan(group.x + group.width);
+  expect(membership.y + membership.height).toBeLessThan(group.y + group.height);
   await page.screenshot({ path: '.impeccable/review/database-design.png' });
+  for (let step = 0; step < 5; step++)
+    await page.getByRole('button', { name: 'Zoom out', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: /^Inspect connection:/ }),
+  ).toHaveCount(6);
+  await expect(
+    page.getByRole('button', {
+      name: 'Inspect connection: User profile (1:1)',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Fit graph to view', exact: true })
+    .click();
   await page.getByRole('button', { name: 'Valid graph', exact: true }).click();
   await expect(page.getByLabel('Validation inspector')).toContainText(
     '6 connections checked',

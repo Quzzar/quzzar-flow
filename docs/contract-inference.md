@@ -59,4 +59,8 @@ Sources use an empty object as their input contract. Disconnected nodes with req
 
 ## Visual node groups
 
-`addGroup({ id, name, icon?, color? })` defines a visual container; a node joins it through `group: id`. Groups are not endpoints or schema scopes. Field matching and explicit mappings work unchanged across group boundaries. Group IDs must be nonempty, unique, and distinct from node IDs. An unknown node group or invalid group color is a validation error. Groups are one level deep; they do not imply execution order, ownership, or deployment behavior.
+`addGroup({ id, name, parent?, icon?, color? })` defines a visual container; a node joins it through `group: id`. Groups are not endpoints or schema scopes. Field matching and explicit mappings work unchanged across group boundaries. Group IDs must be nonempty, unique, and distinct from node IDs. An unknown node group or invalid group color is a validation error. Groups may name a `parent` group. Missing or cyclic parent ancestry is a validation error. Containment does not imply execution order, ownership, or deployment behavior.
+
+## Structural relationships
+
+`relate(source, target, { cardinality, label?, description?, sourceKey?, targetKey? })` records an association separately from `connect()`. Relationships do not participate in field inference, satisfy required inputs, or increase `connectionsChecked`. Validation checks unique relationship IDs, existing node endpoints, supported cardinality values, paired key configuration, and key-path existence in endpoint output schemas. Cardinality, SQL key compatibility, uniqueness, participation minimums, and foreign-key enforcement are declarations, not proven database properties. See [the examples guide](examples.md) for conceptual many-to-many associations and concrete join-table relationships.

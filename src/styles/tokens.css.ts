@@ -55,6 +55,7 @@ export const tokens = createGlobalTheme(':root', {
     rail: '56px',
     inspector: '344px',
     node: '248px',
+    relationshipLabel: '104px',
     icon: '16px',
     smallIcon: '14px',
     button: '34px',

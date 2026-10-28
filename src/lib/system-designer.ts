@@ -1,4 +1,6 @@
 import type {
+  DesignerRelationship,
+  RelationshipOptions,
   DesignerConnection,
   DesignerGroup,
   ConnectionOptions,
@@ -18,6 +20,7 @@ export class SystemDesigner {
   readonly options: Readonly<DesignerOptions>;
   private readonly nodes: DesignerNode[] = [];
   private readonly groups: DesignerGroup[] = [];
+  private readonly relationships: DesignerRelationship[] = [];
   private readonly connections: DesignerConnection[] = [];
 
   constructor(options: DesignerOptions = {}) {
@@ -59,9 +62,31 @@ export class SystemDesigner {
     return this;
   }
 
+  /** Describe an association without supplying data to a node’s input contract. */
+  relate(source: string, target: string, options: RelationshipOptions): this {
+    this.relationships.push({
+      ...options,
+      id: `relationship-${this.relationships.length + 1}`,
+      source,
+      target,
+      ...(options.sourceKey ? { sourceKey: [...options.sourceKey] } : {}),
+      ...(options.targetKey ? { targetKey: [...options.targetKey] } : {}),
+    });
+    return this;
+  }
+
   /** Get a graph snapshot without exposing the instance’s node/edge collections. */
   getGraph(): DesignerGraph {
     return {
+      relationships: this.relationships.map((relationship) => ({
+        ...relationship,
+        ...(relationship.sourceKey
+          ? { sourceKey: [...relationship.sourceKey] }
+          : {}),
+        ...(relationship.targetKey
+          ? { targetKey: [...relationship.targetKey] }
+          : {}),
+      })),
       groups: this.groups.map((group) => ({ ...group })),
       nodes: this.nodes.map((node) => ({ ...node })),
       connections: this.connections.map((connection) => ({

@@ -492,6 +492,16 @@ export const edgeLabel = style({
   textAlign: 'center',
   cursor: 'pointer',
 });
+export const relationshipLabel = style({
+  maxWidth: t.dimension.relationshipLabel,
+  whiteSpace: 'normal',
+  overflowWrap: 'anywhere',
+});
+export const relationshipActions = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: t.space.sm,
+});
 export const edgeLabelSelected = style({
   borderColor: t.color.blue,
   color: t.color.blue,
@@ -503,7 +513,7 @@ export const binding = style({
 export const bindingPath = style({
   color: t.color.blue,
   fontFamily: t.font.code,
-  fontSize: t.size.tiny,
+  fontSize: t.size.small,
   overflowWrap: 'anywhere',
 });
 export const bindingSource = style({

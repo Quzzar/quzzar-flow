@@ -36,7 +36,9 @@ Make system structure and the movement and transformation of data inspectable so
 - Schema contracts are shown as an expandable field tree, not a raw JSON Schema dump.
 - Connections support explicit leaf/subtree field mappings to select sources and rename fields while preserving schema checks.
 - Inspector dismissal clears the selection and expands the canvas.
-- Flat node groups provide named, icon-labeled, shaded visual boundaries without changing contract inference.
+- Nested node groups provide named, icon-labeled, shaded visual boundaries without changing contract inference.
+- Separate structural relationships describe cardinality and paired output-schema key paths without supplying input contracts.
+- Full-stack and database examples cover nested sections, table nodes, function flows, and join tables.
 - Stress examples cover large fan-in, ambiguity, and explicit resolution.
 - Publishing, arbitrary React node-card content, and additional layout controls remain undecided.
 

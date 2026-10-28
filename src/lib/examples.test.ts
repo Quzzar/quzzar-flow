@@ -20,7 +20,11 @@ describe('public API examples', () => {
       } else {
         expect(result.issues).toEqual([]);
         expect(result.valid).toBe(true);
-        expect(result.bindings.length).toBeGreaterThan(0);
+        if (example.id === 'database-design') {
+          expect(result.bindings).toEqual([]);
+          expect(result.connectionsChecked).toBe(0);
+          expect(example.create().getGraph().relationships).toHaveLength(6);
+        } else expect(result.bindings.length).toBeGreaterThan(0);
       }
     });
   }

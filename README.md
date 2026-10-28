@@ -87,8 +87,10 @@ Give the mount element a height. `render()` accepts an element ID without `#`, o
 
 ## Examples
 
-The demo navigation switches among eight graphs, each authored entirely through the package API:
+The demo navigation switches among ten graphs, each authored entirely through the package API:
 
+- [Full-stack app](examples/full-stack-app.ts): nested frontend/backend sections, API and data-access functions, table nodes, and two task journeys.
+- [Database design](examples/database-design.ts): row schemas, declared keys, cardinality, and a many-to-many join table.
 - [Order checkout](examples/checkout.ts): separate suppliers and nested-field inference, with JSON and a catalog table.
 - [Document review](examples/document-review.ts): fan-in and fan-out, text, schema blocks, and separate consumers.
 - [Node groups](examples/grouped-system.ts): shaded frontend, backend, and database containers with cross-group connections.
@@ -144,7 +146,9 @@ sd.addGroup({
 // Include group: 'backend' in the nodes added with sd.add(...).
 ```
 
-Groups accept the same icons as nodes. Their color can be `blue`, `green`, `amber`, `purple`, `neutral` (the default), or a six-digit hex color such as `#9081d7`. The color produces a subtle background, border, and readable heading. Groups are flat, arranged in declaration order, and size around their members. Ungrouped nodes remain outside the containers. Membership does not change contract inference: connections work within or across groups. Validation reports unknown groups, duplicate IDs, node/group ID collisions, and invalid colors. Group containers are read-only.
+Groups accept the same icons as nodes. Their color can be `blue`, `green`, `amber`, `purple`, `neutral` (the default), or a six-digit hex color such as `#9081d7`. The color produces a subtle background, border, and readable heading. Groups support a `parent` group ID, are arranged in declaration order, and size around their members and nested groups. Ungrouped nodes remain outside the containers. Membership does not change contract inference: connections work within or across groups. Validation reports unknown groups, duplicate IDs, node/group ID collisions, and invalid colors. Group containers are read-only. Missing or cyclic parent ancestry is a validation error.
+
+Use `sd.relate(source, target, { cardinality, label?, description?, sourceKey?, targetKey? })` to describe one-to-one, one-to-many, many-to-one, or many-to-many associations. Dashed relationship lines are separate from data-flow connections and never supply input fields. Optional paired key paths refer to endpoint output schemas. See the [app and database walkthrough](docs/examples.md) for complete examples, navigation, and validation limits.
 
 Select a node for its overview and contracts. Close the inspector with its X to clear the selection and use the full canvas. Clicking the blank canvas also clears the selection. Large graphs expose an Inspect chooser that zooms to a selected node; wide layers use multiple columns, and edge labels appear as you zoom in or select a connection. Large input lists are grouped by source. Select a connection to see its inferred consumed fields, the available upstream output, the consumer’s complete input contract, and inputs supplied by other connections. The viewer shows declared contracts and illustrative content, not live runtime payloads.
 

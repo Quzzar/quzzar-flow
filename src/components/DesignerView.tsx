@@ -13,7 +13,6 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
-  useNodesInitialized,
 } from '@xyflow/react';
 import { Maximize, Minus, Plus, GitFork, CheckCheck } from 'lucide-react';
 import { Tooltip } from 'radix-ui';
@@ -45,6 +44,7 @@ import '@fontsource/ibm-plex-mono/latin-400.css';
 type ViewerFlowNode = OperationFlowNode | GroupFlowNode;
 const nodeTypes = { operation: OperationNode, domainGroup: GroupNode };
 const edgeTypes = { connection: ConnectionEdge };
+const FIT_VIEW_OPTIONS = { padding: 0.14 };
 
 function IconButton({
   label,
@@ -107,14 +107,19 @@ function Viewer({
 }) {
   const pickerId = useId();
   const validationButton = useRef<HTMLButtonElement>(null);
-  const { fitView, fitBounds, getNodesBounds } = useReactFlow();
+  const { fitView, fitBounds, viewportInitialized } = useReactFlow();
   const isLargeGraph = graph.nodes.length > 12;
+  const showPicker =
+    isLargeGraph ||
+    Boolean(graph.groups?.length) ||
+    Boolean(graph.relationships?.length);
   const [selection, setSelection] = useState<Selection | null>(() => {
     const id = initialNodeId ?? graph.nodes[0]?.id;
     return id ? { type: 'node', id } : null;
   });
   const result = useMemo(() => validateGraph(graph), [graph]);
   const hasGroups = Boolean(graph.groups?.length);
+  const usesMeasuredFit = hasGroups || Boolean(graph.relationships?.length);
   const [nodeSizes, setNodeSizes] = useState<ReadonlyMap<string, NodeSize>>(
     () => new Map(),
   );
@@ -126,9 +131,9 @@ function Viewer({
     () => groupedLayout?.positions ?? layoutGraph(graph),
     [graph, groupedLayout],
   );
-  const isInitialized = useNodesInitialized();
   const hasFitGroups = useRef(false);
   const operations: OperationFlowNode[] = graph.nodes.map((node) => {
+    const measured = nodeSizes.get(node.id);
     const point = positions.get(node.id) ?? { x: 0, y: 0 };
     const parent = node.group
       ? groupedLayout?.containers.get(node.group)
@@ -136,6 +141,7 @@ function Viewer({
     return {
       id: node.id,
       type: 'operation',
+      ...(measured ? { measured } : {}),
       position: parent
         ? { x: point.x - parent.x, y: point.y - parent.y }
         : point,
@@ -146,47 +152,77 @@ function Viewer({
       selected: selection?.type === 'node' && selection.id === node.id,
       data: {
         definition: node,
-        hasInput: graph.connections.some((edge) => edge.target === node.id),
-        hasOutput: graph.connections.some((edge) => edge.source === node.id),
+        hasInput: [...graph.connections, ...(graph.relationships ?? [])].some(
+          (edge) => edge.target === node.id,
+        ),
+        hasOutput: [...graph.connections, ...(graph.relationships ?? [])].some(
+          (edge) => edge.source === node.id,
+        ),
         hasError: result.issues.some(
           (issue) => issue.nodeId === node.id && issue.kind === 'error',
         ),
       },
     };
   });
-  const containers: GroupFlowNode[] = (graph.groups ?? []).flatMap((group) => {
-    const box = groupedLayout?.containers.get(group.id);
-    return box
-      ? [
-          {
-            id: group.id,
-            type: 'domainGroup' as const,
-            position: { x: box.x, y: box.y },
-            data: { definition: group },
-            style: { width: box.width, height: box.height },
-            selectable: false,
-            focusable: false,
-            draggable: false,
-            connectable: false,
-            zIndex: 0,
-          },
-        ]
-      : [];
+  const containers: GroupFlowNode[] = [
+    ...(groupedLayout?.containers ?? []),
+  ].flatMap(([id, box]) => {
+    const group = graph.groups?.find((group) => group.id === id);
+    if (!group) return [];
+    const parentId = groupedLayout?.parents.get(id);
+    const parent = parentId
+      ? groupedLayout?.containers.get(parentId)
+      : undefined;
+    return [
+      {
+        id,
+        type: 'domainGroup' as const,
+        position: { x: box.x - (parent?.x ?? 0), y: box.y - (parent?.y ?? 0) },
+        ...(parent && parentId ? { parentId, extent: 'parent' as const } : {}),
+        data: { definition: group },
+        width: box.width,
+        height: box.height,
+        selectable: false,
+        focusable: false,
+        draggable: false,
+        connectable: false,
+        zIndex: 0,
+      },
+    ];
   });
   const nodes: ViewerFlowNode[] = [...containers, ...operations];
-  const edges: ConnectionFlowEdge[] = graph.connections
+  const edges: ConnectionFlowEdge[] = [
+    ...graph.connections,
+    ...(graph.relationships ?? []),
+  ]
     .filter((edge) => positions.has(edge.source) && positions.has(edge.target))
     .map((edge, edgeIndex) => {
-      const isSelected =
-        selection?.type === 'connection' && selection.id === edge.id;
+      const isRelationship = 'cardinality' in edge;
+      const kind = isRelationship ? 'relationship' : 'connection';
+      const isSelected = selection?.type === kind && selection.id === edge.id;
       const sourcePosition = positions.get(edge.source);
       const targetPosition = positions.get(edge.target);
+      const sourceGroup = graph.nodes.find(
+        (node) => node.id === edge.source,
+      )?.group;
+      const targetGroup = graph.nodes.find(
+        (node) => node.id === edge.target,
+      )?.group;
+      const isParallel = [...graph.connections, ...(graph.relationships ?? [])]
+        .slice(0, edgeIndex)
+        .some(
+          (other) =>
+            other.source === edge.source && other.target === edge.target,
+        );
       const spansColumn =
         sourcePosition &&
         targetPosition &&
-        (hasGroups
-          ? targetPosition.x < sourcePosition.x
-          : targetPosition.x - sourcePosition.x > COLUMN_WIDTH);
+        (isParallel ||
+          (hasGroups
+            ? targetPosition.x < sourcePosition.x ||
+              (sourceGroup === targetGroup &&
+                targetPosition.x - sourcePosition.x > COLUMN_WIDTH)
+            : targetPosition.x - sourcePosition.x > COLUMN_WIDTH));
       const fields = result.bindings
         .filter((binding) => binding.connectionId === edge.id)
         .map(
@@ -197,10 +233,16 @@ function Viewer({
       return {
         ...edge,
         type: 'connection',
+        ...(isRelationship
+          ? {
+              label: `${edge.label ?? 'Relationship'} · ${edge.cardinality.replaceAll('-to-', ':').replaceAll('one', '1').replaceAll('many', 'N')}`,
+            }
+          : {}),
         zIndex: hasGroups ? 1 : 0,
         selected: isSelected,
         data: {
-          inspect: () => setSelection({ type: 'connection', id: edge.id }),
+          kind,
+          inspect: () => setSelection({ type: kind, id: edge.id }),
           fields,
           ...(spansColumn
             ? {
@@ -218,15 +260,20 @@ function Viewer({
               }
             : {}),
         },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 16,
-          height: 16,
-          color: isSelected ? t.color.blue : t.color.edge,
-        },
+        ...(!isRelationship
+          ? {
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                width: 16,
+                height: 16,
+                color: isSelected ? t.color.blue : t.color.edge,
+              },
+            }
+          : {}),
         style: {
           stroke: isSelected ? t.color.blue : t.color.edge,
           strokeWidth: isSelected ? 2 : 1.4,
+          ...(isRelationship ? { strokeDasharray: '6 4' } : {}),
         },
       };
     });
@@ -235,14 +282,25 @@ function Viewer({
     ...edges.map((edge) => edge.data?.bypassY ?? 0),
   );
   const fitGraph = useCallback(() => {
-    if (!hasGroups) {
+    if (!usesMeasuredFit) {
       void fitView({ padding: 0.14 });
       return;
     }
-    const bounds = getNodesBounds([
-      ...graph.nodes.map((node) => node.id),
-      ...(graph.groups ?? []).map((group) => group.id),
-    ]);
+    const boxes = [
+      ...[...(groupedLayout?.containers.values() ?? [])],
+      ...graph.nodes.map((node) => ({
+        ...(positions.get(node.id) ?? { x: 0, y: 0 }),
+        ...(nodeSizes.get(node.id) ?? { width: 248, height: 260 }),
+      })),
+    ];
+    const x = Math.min(...boxes.map((box) => box.x));
+    const y = Math.min(...boxes.map((box) => box.y));
+    const bounds = {
+      x,
+      y,
+      width: Math.max(...boxes.map((box) => box.x + box.width)) - x,
+      height: Math.max(...boxes.map((box) => box.y + box.height)) - y,
+    };
     const top = Math.min(bounds.y, lowestLane - 40);
     void fitBounds(
       {
@@ -253,18 +311,33 @@ function Viewer({
       },
       { padding: 0.14 },
     );
-  }, [hasGroups, fitView, fitBounds, getNodesBounds, graph, lowestLane]);
+  }, [
+    usesMeasuredFit,
+    fitView,
+    fitBounds,
+    graph,
+    lowestLane,
+    groupedLayout,
+    positions,
+    nodeSizes,
+  ]);
   useEffect(() => {
     if (
-      hasGroups &&
-      isInitialized &&
+      usesMeasuredFit &&
+      viewportInitialized &&
       nodeSizes.size >= graph.nodes.length &&
       !hasFitGroups.current
     ) {
       hasFitGroups.current = true;
       fitGraph();
     }
-  }, [hasGroups, isInitialized, nodeSizes.size, graph.nodes.length, fitGraph]);
+  }, [
+    usesMeasuredFit,
+    viewportInitialized,
+    nodeSizes.size,
+    graph.nodes.length,
+    fitGraph,
+  ]);
   return (
     <Tooltip.Provider delayDuration={250}>
       <div className={s.studio}>
@@ -293,7 +366,7 @@ function Viewer({
         >
           <div className={s.canvasColumn}>
             <div
-              className={`${s.mobilePicker} ${isLargeGraph ? s.largeGraphPicker : ''}`}
+              className={`${s.mobilePicker} ${showPicker ? s.largeGraphPicker : ''}`}
             >
               <label htmlFor={pickerId}>Inspect</label>
               <select
@@ -311,20 +384,38 @@ function Viewer({
                   if (value.startsWith('node:')) {
                     const id = value.slice(5);
                     setSelection({ type: 'node', id });
-                    if (isLargeGraph)
+                    if (showPicker)
                       void fitView({
                         nodes: [{ id }],
                         maxZoom: 1,
                         padding: 0.5,
                       });
-                  } else if (value.startsWith('connection:'))
+                  } else if (value.startsWith('group:')) {
+                    setSelection(null);
+                    void fitView({
+                      nodes: [{ id: value.slice(6) }],
+                      padding: 0.2,
+                      maxZoom: 1,
+                    });
+                  } else if (value.startsWith('relationship:'))
+                    setSelection({ type: 'relationship', id: value.slice(13) });
+                  else if (value.startsWith('connection:'))
                     setSelection({ type: 'connection', id: value.slice(11) });
                   else setSelection({ type: 'validation' });
                 }}
               >
                 <option value="" disabled>
-                  Select a node or connection
+                  Choose a section or item
                 </option>
+                {Boolean(graph.groups?.length) && (
+                  <optgroup label="Sections">
+                    {[...(groupedLayout?.containers.keys() ?? [])].map((id) => (
+                      <option key={id} value={`group:${id}`}>
+                        {graph.groups?.find((group) => group.id === id)?.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
                 <optgroup label="Nodes">
                   {graph.nodes.map((node) => (
                     <option key={node.id} value={`node:${node.id}`}>
@@ -346,6 +437,20 @@ function Viewer({
                     </option>
                   ))}
                 </optgroup>
+                {Boolean(graph.relationships?.length) && (
+                  <optgroup label="Relationships">
+                    {graph.relationships?.map((relationship) => (
+                      <option
+                        key={relationship.id}
+                        value={`relationship:${relationship.id}`}
+                      >
+                        {relationship.label ??
+                          `${relationship.source} → ${relationship.target}`}{' '}
+                        ({relationship.cardinality})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
                 <option value="validation">Graph validation</option>
               </select>
             </div>
@@ -373,11 +478,17 @@ function Viewer({
                     )
                   }
                   onEdgeClick={(_, edge) =>
-                    setSelection({ type: 'connection', id: edge.id })
+                    setSelection({
+                      type:
+                        edge.data?.kind === 'relationship'
+                          ? 'relationship'
+                          : 'connection',
+                      id: edge.id,
+                    })
                   }
                   onNodesChange={(changes) => {
                     if (
-                      hasGroups &&
+                      usesMeasuredFit &&
                       changes.some((change) => change.type === 'dimensions')
                     ) {
                       setNodeSizes((previous) => {
@@ -413,10 +524,17 @@ function Viewer({
                       (change) => change.type === 'select' && change.selected,
                     );
                     if (selected?.type === 'select')
-                      setSelection({ type: 'connection', id: selected.id });
+                      setSelection({
+                        type: graph.relationships?.some(
+                          (edge) => edge.id === selected.id,
+                        )
+                          ? 'relationship'
+                          : 'connection',
+                        id: selected.id,
+                      });
                   }}
-                  fitView
-                  fitViewOptions={{ padding: 0.14 }}
+                  fitView={!usesMeasuredFit}
+                  fitViewOptions={FIT_VIEW_OPTIONS}
                   minZoom={0.02}
                   maxZoom={1.8}
                   style={{ background: t.color.canvas }}
@@ -446,6 +564,15 @@ function Viewer({
                 <GitFork size={14} />
                 {graph.nodes.length} nodes<span>·</span>
                 {graph.connections.length} connections
+                {Boolean(graph.relationships?.length) && (
+                  <>
+                    <span>·</span>
+                    {graph.relationships?.length}{' '}
+                    {graph.relationships?.length === 1
+                      ? 'relationship'
+                      : 'relationships'}
+                  </>
+                )}
               </div>
               <CanvasControls fitGraph={fitGraph} />
             </div>
@@ -455,7 +582,15 @@ function Viewer({
               graph={graph}
               selection={selection}
               result={result}
-              onSelect={setSelection}
+              onSelect={(next) => {
+                setSelection(next);
+                if (next.type === 'node' && showPicker)
+                  void fitView({
+                    nodes: [{ id: next.id }],
+                    maxZoom: 1,
+                    padding: 0.5,
+                  });
+              }}
               onClose={() => {
                 setSelection(null);
                 validationButton.current?.focus({ preventScroll: true });

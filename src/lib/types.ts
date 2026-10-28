@@ -28,6 +28,8 @@ export type NodeIcon =
   | 'none';
 
 export type DesignerGroup = {
+  /** Parent group ID. Omit for a top-level section. */
+  parent?: string;
   id: string;
   name: string;
   icon?: NodeIcon;
@@ -54,6 +56,23 @@ export type DesignerConnection = {
   map?: FieldMapping[];
 };
 
+/** A structural association, separate from an input/output data-flow connection. */
+export type Cardinality =
+  'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many';
+export type RelationshipOptions = {
+  cardinality: Cardinality;
+  label?: string;
+  description?: string;
+  /** Key paths refer to the endpoints’ output schemas. Supply both or neither. */
+  sourceKey?: string[];
+  targetKey?: string[];
+};
+export type DesignerRelationship = RelationshipOptions & {
+  id: string;
+  source: string;
+  target: string;
+};
+
 /** Paths are arrays so a field named `customer.id` remains one unambiguous key. */
 export type FieldMapping = { from: string[]; to: string[] };
 export type ConnectionOptions = { label?: string; map?: FieldMapping[] };
@@ -70,6 +89,7 @@ export type ValidationIssue = {
   path: string;
   nodeId?: string;
   groupId?: string;
+  relationshipId?: string;
   connectionId?: string;
   suggestions?: MappingSuggestion[];
 };
@@ -94,6 +114,7 @@ export type InputBinding = {
 };
 
 export type DesignerGraph = {
+  relationships?: DesignerRelationship[];
   groups?: DesignerGroup[];
   nodes: DesignerNode[];
   connections: DesignerConnection[];

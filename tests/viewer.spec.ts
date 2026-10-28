@@ -315,3 +315,159 @@ test('group containers enclose measured members and preserve cross-group inspect
   );
   expect(errors).toEqual([]);
 });
+
+test('full-stack example has nested sections, scoped inputs, and section navigation', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/?example=full-stack-app');
+  await expect(
+    page.getByRole('button', { name: 'Valid graph', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('.react-flow__node-operation')).toHaveCount(12);
+  await expect(page.locator('.react-flow__node-domainGroup')).toHaveCount(6);
+  const inspector = page.getByLabel('Node inspector');
+  await expect(inspector).toContainText('membership');
+  await expect(inspector).toContainText('explicit');
+  await expect
+    .poll(async () => {
+      const parent = await page
+        .locator('.react-flow__node[data-id="backend"]')
+        .boundingBox();
+      const child = await page
+        .locator('.react-flow__node[data-id="data-access"]')
+        .boundingBox();
+      return Boolean(
+        parent &&
+        child &&
+        child.x > parent.x &&
+        child.y > parent.y &&
+        child.x + child.width < parent.x + parent.width &&
+        child.y + child.height < parent.y + parent.height,
+      );
+    })
+    .toBe(true);
+  await expect
+    .poll(async () => {
+      const canvas = await page
+        .getByLabel('Read-only system contract graph', { exact: true })
+        .boundingBox();
+      const label = await page
+        .getByRole('button', {
+          name: 'Inspect connection: Board collection',
+          exact: true,
+        })
+        .boundingBox();
+      return Boolean(canvas && label && label.y >= canvas.y);
+    })
+    .toBe(true);
+  await page.screenshot({ path: '.impeccable/review/full-stack-app.png' });
+  await page
+    .getByLabel('Inspect', { exact: true })
+    .selectOption('group:backend');
+  await expect(inspector).toHaveCount(0);
+  await expect
+    .poll(
+      async () =>
+        (
+          await page
+            .locator('.react-flow__node[data-id="backend"]')
+            .boundingBox()
+        )?.width ?? 0,
+    )
+    .toBeGreaterThan(500);
+  await page.screenshot({ path: '.impeccable/review/full-stack-backend.png' });
+  await page
+    .getByLabel('Inspect', { exact: true })
+    .selectOption('connection:connection-3');
+  await expect(page.getByLabel('Connection inspector')).toContainText(
+    'memberships → Authorize task creation',
+  );
+  await expect(page.getByLabel('Connection inspector')).toContainText(
+    'explicit',
+  );
+  await page.screenshot({ path: '.impeccable/review/full-stack-flow.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByLabel('Inspect', { exact: true })
+    .selectOption('node:authorize');
+  await expect(page.getByLabel('Node inspector')).toContainText('membership');
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: '.impeccable/review/full-stack-mobile.png',
+    fullPage: true,
+  });
+  expect(errors).toEqual([]);
+});
+
+test('database relationships expose cardinality and keys independently of flow contracts', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/?example=database-design');
+  await expect(
+    page.getByRole('button', { name: 'Valid graph', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('.react-flow__edge')).toHaveCount(6);
+  await page
+    .getByLabel('Inspect', { exact: true })
+    .selectOption('relationship:relationship-5');
+  await expect(page.getByLabel('Relationship inspector')).toContainText(
+    'many to many',
+  );
+  await expect(page.getByLabel('Relationship inspector')).toContainText(
+    'composite primary key',
+  );
+  await expect
+    .poll(async () => {
+      const canvas = await page
+        .getByLabel('Read-only system contract graph', { exact: true })
+        .boundingBox();
+      const label = await page
+        .getByRole('button', {
+          name: 'Inspect relationship: members via memberships · N:N',
+          exact: true,
+        })
+        .boundingBox();
+      return Boolean(canvas && label && label.y >= canvas.y);
+    })
+    .toBe(true);
+  await page.screenshot({ path: '.impeccable/review/database-design.png' });
+  await page
+    .getByLabel('Inspect', { exact: true })
+    .selectOption('relationship:relationship-1');
+  await expect(page.getByLabel('Relationship inspector')).toContainText(
+    'id → ownerId',
+  );
+  await page
+    .getByRole('button', { name: 'Inspect projects', exact: true })
+    .click();
+  await expect(page.getByLabel('Node inspector')).toContainText('projects');
+  await page.getByRole('button', { name: 'Valid graph', exact: true }).click();
+  await expect(page.getByLabel('Validation inspector')).toContainText(
+    '0 connections checked',
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByLabel('Inspect', { exact: true })
+    .selectOption('relationship:relationship-6');
+  await expect(page.getByLabel('Relationship inspector')).toContainText(
+    'one to one',
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: '.impeccable/review/database-mobile.png',
+    fullPage: true,
+  });
+  expect(errors).toEqual([]);
+});

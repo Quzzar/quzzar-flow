@@ -1,4 +1,5 @@
 import { describeSchema } from './schema';
+import { groupParents } from './group-layout';
 import { groupAppearance } from './group-colors';
 import type {
   DesignerGraph,
@@ -296,6 +297,18 @@ export function validateGraph(graph: DesignerGraph): ValidationResult {
         message: appearance.message,
       });
   }
+  const parents = groupParents(graph);
+  for (const group of graph.groups ?? []) {
+    if (group.parent !== undefined && !parents.has(group.id))
+      issues.push({
+        kind: 'error',
+        code: 'group-parent',
+        groupId: group.id,
+        path: '$.parent',
+        message:
+          'Group parent must exist and its ancestry must not contain a cycle.',
+      });
+  }
   const nodes = new Map<string, DesignerGraph['nodes'][number]>();
   const contracts = new Map<
     string,
@@ -432,6 +445,64 @@ export function validateGraph(graph: DesignerGraph): ValidationResult {
           message: 'The explicitly mapped input path does not exist.',
         });
       }
+    }
+  }
+
+  const relationshipIds = new Set<string>();
+  for (const relationship of graph.relationships ?? []) {
+    const report = (code: string, message: string, path = '$') =>
+      issues.push({
+        kind: 'error',
+        code,
+        message,
+        path,
+        relationshipId: relationship.id,
+      });
+    if (
+      !relationship.id.trim() ||
+      relationshipIds.has(relationship.id) ||
+      graph.connections.some((edge) => edge.id === relationship.id)
+    )
+      report(
+        'relationship-id',
+        'Relationship IDs must be unique and distinct from connection IDs.',
+      );
+    relationshipIds.add(relationship.id);
+    if (
+      !['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'].includes(
+        relationship.cardinality,
+      )
+    )
+      report(
+        'relationship-cardinality',
+        'Relationship cardinality is not supported.',
+      );
+    const source = contracts.get(relationship.source)?.output;
+    const target = contracts.get(relationship.target)?.output;
+    if (!source || !target) {
+      report('relationship-node', 'Relationship references a missing node.');
+      continue;
+    }
+    if (Boolean(relationship.sourceKey) !== Boolean(relationship.targetKey))
+      report(
+        'relationship-key',
+        'Supply both sourceKey and targetKey, or neither.',
+      );
+    for (const [key, contract] of [
+      [relationship.sourceKey, source],
+      [relationship.targetKey, target],
+    ] as const) {
+      if (!key || contract.status !== 'success') continue;
+      if (
+        !fields(contract.schema, true).some(
+          (field) => JSON.stringify(field.segments) === JSON.stringify(key),
+        )
+      )
+        report(
+          'relationship-key',
+          'The relationship key path does not exist in the endpoint output schema.',
+          fieldPath(key),
+        );
     }
   }
 

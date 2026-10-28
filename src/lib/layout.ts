@@ -6,12 +6,13 @@ export const COLUMN_WIDTH = 360;
 export function layoutGraph(
   graph: DesignerGraph,
 ): Map<string, { x: number; y: number }> {
+  const links = [...graph.connections, ...(graph.relationships ?? [])];
   const layers = new Map<string, number>();
   const remaining = new Set(graph.nodes.map((node) => node.id));
   for (let pass = 0; pass < graph.nodes.length && remaining.size; pass++) {
     let changed = false;
     for (const id of remaining) {
-      const parents = graph.connections
+      const parents = links
         .filter((edge) => edge.target === id)
         .map((edge) => edge.source);
       if (parents.every((parent) => layers.has(parent))) {

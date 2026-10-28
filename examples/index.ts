@@ -1,3 +1,5 @@
+import { createFullStackAppExample } from './full-stack-app';
+import { createDatabaseDesignExample } from './database-design';
 import { createCheckoutExample } from './checkout';
 import { createDocumentReviewExample } from './document-review';
 import { createImageDeliveryExample } from './image-delivery';
@@ -6,6 +8,20 @@ import { createStressExample } from './stress-test';
 import { createGroupedSystemExample } from './grouped-system';
 
 export const EXAMPLES = [
+  {
+    id: 'full-stack-app',
+    name: 'Full-stack app',
+    source: 'full-stack-app.ts',
+    create: createFullStackAppExample,
+    selectedNode: 'authorize',
+  },
+  {
+    id: 'database-design',
+    name: 'Database design',
+    source: 'database-design.ts',
+    create: createDatabaseDesignExample,
+    selectedNode: 'memberships',
+  },
   {
     id: 'checkout',
     name: 'Order checkout',

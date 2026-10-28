@@ -92,3 +92,47 @@ describe('node groups', () => {
     expect(sd.getGraph().groups?.[0]?.name).toBe('Original');
   });
 });
+
+describe('nested containment', () => {
+  test('orders parents before children and encloses descendants with measured sizes', () => {
+    const sd = new SystemDesigner();
+    sd.addGroup({ id: 'leaf', parent: 'middle', name: 'Leaf' });
+    sd.addGroup({ id: 'root', name: 'Root' });
+    sd.addGroup({ id: 'middle', parent: 'root', name: 'Middle' });
+    sd.add({
+      id: 'large',
+      name: 'Large',
+      group: 'leaf',
+      input: z.object({}),
+      output: z.object({}),
+      processing: 'Describe.',
+    });
+    expect(sd.validate().valid).toBe(true);
+    const layout = layoutGroupedGraph(
+      sd.getGraph(),
+      new Map([['large', { width: 248, height: 900 }]]),
+    );
+    expect([...layout.containers.keys()]).toEqual(['root', 'middle', 'leaf']);
+    for (const [childId, parentId] of layout.parents) {
+      const child = layout.containers.get(childId)!;
+      const parent = layout.containers.get(parentId)!;
+      expect(child.x).toBeGreaterThan(parent.x);
+      expect(child.y).toBeGreaterThan(parent.y);
+      expect(child.x + child.width).toBeLessThan(parent.x + parent.width);
+      expect(child.y + child.height).toBeLessThan(parent.y + parent.height);
+    }
+  });
+  test('cycles, self-parenting, and missing ancestry fail validation without hanging layout', () => {
+    const sd = new SystemDesigner();
+    sd.addGroup({ id: 'a', parent: 'b', name: 'A' });
+    sd.addGroup({ id: 'b', parent: 'a', name: 'B' });
+    sd.addGroup({ id: 'self', parent: 'self', name: 'Self' });
+    sd.addGroup({ id: 'missing', parent: 'unknown', name: 'Missing' });
+    expect(
+      sd.validate().issues.filter((issue) => issue.code === 'group-parent'),
+    ).toHaveLength(4);
+    expect(layoutGroupedGraph(sd.getGraph(), new Map()).containers.size).toBe(
+      4,
+    );
+  });
+});

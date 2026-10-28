@@ -228,40 +228,6 @@ export const canvasColumn = style({
   flexDirection: 'column',
   minHeight: 0,
 });
-export const mobilePicker = style({
-  display: 'none',
-  '@media': {
-    [smallScreen]: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: t.space.md,
-      padding: `${t.space.md} ${t.space.lg}`,
-      background: t.color.panel,
-      borderBottom: `1px solid ${t.color.line}`,
-      fontSize: t.size.small,
-    },
-  },
-});
-export const largeGraphPicker = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: t.space.md,
-  padding: `${t.space.sm} ${t.space.xxl}`,
-  background: t.color.panel,
-  borderBottom: `1px solid ${t.color.line}`,
-});
-export const inspectSelect = style({
-  minWidth: 0,
-  flex: 1,
-  minHeight: t.dimension.touch,
-  borderRadius: t.radius.small,
-  border: `1px solid ${t.color.line}`,
-  padding: `0 ${t.space.sm}`,
-  background: t.color.background,
-  color: t.color.text,
-  fontFamily: t.font.body,
-  fontSize: t.size.medium,
-});
 export const canvas = style({
   position: 'relative',
   flex: 1,

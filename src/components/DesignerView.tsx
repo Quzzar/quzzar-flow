@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Background,
   BackgroundVariant,
@@ -105,11 +98,9 @@ function Viewer({
   initialNodeId: string | undefined;
   header: HeaderContent;
 }) {
-  const pickerId = useId();
   const validationButton = useRef<HTMLButtonElement>(null);
   const { fitView, fitBounds, viewportInitialized } = useReactFlow();
   const isLargeGraph = graph.nodes.length > 12;
-  const showPicker = isLargeGraph || Boolean(graph.groups?.length);
   const [selection, setSelection] = useState<Selection | null>(() => {
     const id = initialNodeId ?? graph.nodes[0]?.id;
     return id ? { type: 'node', id } : null;
@@ -343,80 +334,6 @@ function Viewer({
           aria-label={options.name ?? 'System graph'}
         >
           <div className={s.canvasColumn}>
-            <div
-              className={`${s.mobilePicker} ${showPicker ? s.largeGraphPicker : ''}`}
-            >
-              <label htmlFor={pickerId}>Inspect</label>
-              <select
-                id={pickerId}
-                className={s.inspectSelect}
-                value={
-                  !selection
-                    ? ''
-                    : selection.type === 'validation'
-                      ? 'validation'
-                      : `${selection.type}:${selection.id}`
-                }
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (value.startsWith('node:')) {
-                    const id = value.slice(5);
-                    setSelection({ type: 'node', id });
-                    if (showPicker)
-                      void fitView({
-                        nodes: [{ id }],
-                        maxZoom: 1,
-                        padding: 0.5,
-                      });
-                  } else if (value.startsWith('group:')) {
-                    setSelection(null);
-                    void fitView({
-                      nodes: [{ id: value.slice(6) }],
-                      padding: 0.2,
-                      maxZoom: 1,
-                    });
-                  } else if (value.startsWith('connection:'))
-                    setSelection({ type: 'connection', id: value.slice(11) });
-                  else setSelection({ type: 'validation' });
-                }}
-              >
-                <option value="" disabled>
-                  Choose a section or item
-                </option>
-                {Boolean(graph.groups?.length) && (
-                  <optgroup label="Sections">
-                    {[...(groupedLayout?.containers.keys() ?? [])].map((id) => (
-                      <option key={id} value={`group:${id}`}>
-                        {graph.groups?.find((group) => group.id === id)?.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                <optgroup label="Nodes">
-                  {graph.nodes.map((node) => (
-                    <option key={node.id} value={`node:${node.id}`}>
-                      {node.name}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Connections">
-                  {graph.connections.map((connection) => (
-                    <option
-                      key={connection.id}
-                      value={`connection:${connection.id}`}
-                    >
-                      {graph.nodes.find((node) => node.id === connection.source)
-                        ?.name ?? connection.source}{' '}
-                      →{' '}
-                      {graph.nodes.find((node) => node.id === connection.target)
-                        ?.name ?? connection.target}
-                      {connection.label ? ` · ${connection.label}` : ''}
-                    </option>
-                  ))}
-                </optgroup>
-                <option value="validation">Graph validation</option>
-              </select>
-            </div>
             <div className={s.canvas}>
               {nodes.length > 0 ? (
                 <ReactFlow<ViewerFlowNode, ConnectionFlowEdge>
@@ -531,7 +448,7 @@ function Viewer({
               result={result}
               onSelect={(next) => {
                 setSelection(next);
-                if (next.type === 'node' && showPicker)
+                if (next.type === 'node')
                   void fitView({
                     nodes: [{ id: next.id }],
                     maxZoom: 1,

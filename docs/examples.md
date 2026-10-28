@@ -19,7 +19,7 @@ Follow task creation:
 
 The separate board journey models **tasks → Load project board → Project board**. A table node exposes a row schema; the loader describes the scoped query and collection assembly. This is a contract-level illustration, not evidence of real authorization, filtering, query results, or persistence.
 
-Use **Inspect → Sections → Backend** to frame that section. Choose a node to focus it and open its overview, or choose a connection to inspect exactly which output fields supply the consumer. For example, `connection-3` shows the explicit `memberships` projection. **Fit graph to view** returns to the complete design. Close the inspector to give the canvas more room.
+Click a table or function card to open its overview, then use Input and Output to inspect its contracts. Click a connection label or path to inspect which fields supply the consumer. Pan and zoom for a closer look; **Fit graph to view** returns to the complete design. Close the inspector to give the canvas more room. Keyboard users can focus graph items and press Enter.
 
 ## Database design
 

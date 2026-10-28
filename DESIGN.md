@@ -80,12 +80,6 @@ components:
     textColor: '{colors.text}'
     rounded: '{rounded.node}'
     width: '248px'
-  inspect-select:
-    backgroundColor: '{colors.background}'
-    textColor: '{colors.text}'
-    rounded: '{rounded.small}'
-    padding: '0 8px'
-    height: '44px'
   group-container:
     backgroundColor: 'rgba(117, 167, 255, 0.07)'
     rounded: '{rounded.node}'
@@ -135,7 +129,7 @@ Group colors accept named blue, green, amber, purple, or neutral values, or a va
 
 - **Studio charcoal** (`background`): library chrome and inspector.
 - **Canvas charcoal** (`canvas`): graph ground and connection labels.
-- **Muted panel** (`panel`): operation cards, canvas controls, and Inspect chooser strip.
+- **Muted panel** (`panel`): operation cards and canvas controls.
 - **Raised slate** (`raised`) and **Hover slate** (`hover`): buttons, badges, tooltips, and interactive hover surfaces.
 - **Structural slate** (`line`) and **Quiet divider** (`subtleLine`): card boundaries and section separators.
 - **Soft white** (`text`): main content; **Muted silver** (`muted`): descriptions and labels; **Dim silver** (`dim`): canvas metadata.
@@ -170,9 +164,9 @@ Operation cards keep a fixed logical width (248px), and React Flow scales the gr
 
 Groups form an arbitrarily deep, acyclic containment tree through their optional parent ID. Member nodes retain their internal flow layout. Bounds are measured from leaves upward, and placement proceeds from roots downward; rendering always places parents before children. Measured card sizes drive bounds after rendering and content resizing. Group headings reserve a top band (72px); members have side and bottom clearance (32px) and a vertical gap (48px). Root groups have horizontal separation (112px), while nested sibling groups use a smaller gap (48px). Ungrouped nodes remain outside the containers. Connections cross group boundaries; return and parallel paths use bypass lanes, and fit-to-view includes those lanes with measured group and member bounds.
 
-The Inspect chooser appears on desktop for graphs with any groups or more than twelve nodes, and remains available on mobile. Its Sections optgroup focuses a whole group, including nested members, without opening a group inspector. Choosing an operation focuses that node; connection choices open the connection inspector. The chooser returns to its selection prompt when the inspector is closed or a section is focused.
+Operation cards, connection paths, and labels provide direct inspection on the canvas. Pan and zoom navigate the graph, while Fit graph restores its overview. Focus an operation or connection and press Enter for keyboard selection; the inspector opens with its details.
 
-At the mobile breakpoint (maximum width 760px), the layout becomes one column and the header uses smaller horizontal insets. An Inspect chooser provides sections, nodes, connections, and validation without requiring precise canvas taps. The canvas becomes a fixed overview region (460px tall), followed directly by a full-width inspector in normal document flow. Coarse pointers receive larger control targets (44px).
+At the mobile breakpoint (maximum width 760px), the layout becomes one column and the header uses smaller horizontal insets. The canvas becomes a fixed overview region (460px tall), followed directly by a full-width inspector in normal document flow. Coarse pointers receive larger control targets (44px).
 
 Spacing follows the frontmatter scale. Header insets use `xxl` on desktop and `lg` on mobile; inspector sections use `xl`; node bodies use `lg`; node headers combine `md` vertically with `lg` horizontally. Content blocks stack with `lg` gaps. Tables scroll within their own width, and long code and binding paths wrap.
 
@@ -206,11 +200,7 @@ Operation cards have a panel background, structural border, and a name header wi
 
 Groups are author-defined through `addGroup({ id, name, icon, color, parent })`, and nodes name their group by ID. They use the operation-card corner radius with a thin tinted border and transparent hue fill. The icon and heading occupy an inset row (20px vertically, 24px horizontally) with a compact gap (8px). The default icon is layers; monitor, server, database, and the other shared node symbols are available, including no icon. Default color is neutral.
 
-Group containers are not selectable, draggable, focusable, or connectable. Their operation cards remain the selectable objects, and all connections still join operations. Containers resize around measured members and nested groups, so expanded schema content stays inside its group. Parent references support arbitrary acyclic nesting; invalid cycles or missing parents are validation issues. Group headings identify membership without becoming separate inspector views; the Sections chooser provides a focus route to them. Invalid group colors are surfaced explicitly rather than silently replaced.
-
-### Inputs / Fields
-
-The Inspect control is a labeled native select with a charcoal background, structural border, and larger readable type (14px). It appears on mobile and for desktop graphs with groups or more than twelve nodes. It focuses sections and selects nodes, connections, or validation. There are no editable contract fields or graph-authoring forms in the viewer.
+Group containers are not selectable, draggable, focusable, or connectable. Their operation cards remain the selectable objects, and all connections still join operations. Containers resize around measured members and nested groups, so expanded schema content stays inside its group. Parent references support arbitrary acyclic nesting; invalid cycles or missing parents are validation issues. Group headings identify membership without becoming separate inspector views. Pan, zoom, and fit navigate grouped content. Invalid group colors are surfaced explicitly rather than silently replaced.
 
 ### Navigation
 
@@ -239,7 +229,7 @@ Ambiguity issues in the validation inspector show read-only configuration sugges
 - **Do** keep group fills translucent, measure nested member content, and include bypass lanes in fit-to-view.
 - **Do** use the same directional connection style and validation behavior for every authored label.
 - **Do** keep detailed input and output contracts in the inspector.
-- **Do** preserve the mobile inspector chooser and readable stacked details.
+- **Do** preserve direct graph selection, keyboard focus, and readable stacked inspector details on mobile.
 - **Do** keep the inspector close action reachable and clear selection when it closes.
 - **Do** use source-group disclosures for large binding lists and hide unselected edge labels at overview zoom.
 - **Do** let callers own header content and use the field tree for contract inspection.
@@ -248,5 +238,5 @@ Ambiguity issues in the validation inspector show read-only configuration sugges
 
 - **Don't** add graph editing or execution controls to the viewer.
 - **Don't** add library-owned input/output footers to operation cards.
-- **Don't** rely on miniature canvas text as the only mobile inspection route.
+- **Don't** require reading contract detail from an unzoomed graph; show selected content in the readable inspector.
 - **Don't** treat the demo example navigation as embedded viewer chrome.

@@ -1,4 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+async function selectGraphItem(page: Page, kind: 'node' | 'edge', id: string) {
+  const item = page.locator(`.react-flow__${kind}[data-id="${id}"]`);
+  await item.focus();
+  await item.press('Enter');
+}
 
 test('inspect nodes, schemas, inferred connections, and validation without graph editing', async ({
   page,
@@ -76,13 +82,11 @@ test('narrow viewer keeps graph navigation and readable inspector without page o
     .click();
   await page.getByRole('tab', { name: 'Output', exact: true }).click();
   await expect(page.getByRole('tabpanel')).toContainText('totalCents');
-  await page.getByLabel('Inspect', { exact: true }).selectOption('node:order');
+  await selectGraphItem(page, 'node', 'order');
   await expect(page.getByLabel('Node inspector')).toContainText(
     'Order request',
   );
-  await page
-    .getByLabel('Inspect', { exact: true })
-    .selectOption('connection:connection-2');
+  await selectGraphItem(page, 'edge', 'connection-2');
   await expect(page.getByLabel('Connection inspector')).toContainText(
     'Consumed from this connection',
   );
@@ -224,9 +228,7 @@ test('large examples expose 48 suppliers, ambiguous mappings, and an explicit re
   ).toBeVisible();
   await expect(page.locator('.react-flow__node')).toHaveCount(53);
   await expect(page.locator('.react-flow__edge')).toHaveCount(52);
-  await page
-    .getByLabel('Inspect', { exact: true })
-    .selectOption('node:signal01');
+  await selectGraphItem(page, 'node', 'signal01');
   await expect(page.getByLabel('Node inspector')).toContainText('Signal 01');
   await expect(
     page.locator('.react-flow__node[data-id="signal01"]'),
@@ -253,9 +255,7 @@ test('large examples expose 48 suppliers, ambiguous mappings, and an explicit re
   ).toBeVisible();
   await expect(page.locator('.react-flow__node')).toHaveCount(54);
   await expect(page.getByLabel('Node inspector')).toContainText('explicit');
-  await page
-    .getByLabel('Inspect', { exact: true })
-    .selectOption('connection:connection-1');
+  await selectGraphItem(page, 'edge', 'connection-1');
   await expect(page.getByLabel('Connection inspector')).toContainText(
     'explicit',
   );
@@ -316,7 +316,7 @@ test('group containers enclose measured members and preserve cross-group inspect
   expect(errors).toEqual([]);
 });
 
-test('full-stack example has nested sections, scoped inputs, and section navigation', async ({
+test('full-stack example has nested sections, scoped inputs, and direct graph inspection', async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -363,24 +363,8 @@ test('full-stack example has nested sections, scoped inputs, and section navigat
     })
     .toBe(true);
   await page.screenshot({ path: '.impeccable/review/full-stack-app.png' });
-  await page
-    .getByLabel('Inspect', { exact: true })
-    .selectOption('group:backend');
-  await expect(inspector).toHaveCount(0);
-  await expect
-    .poll(
-      async () =>
-        (
-          await page
-            .locator('.react-flow__node[data-id="backend"]')
-            .boundingBox()
-        )?.width ?? 0,
-    )
-    .toBeGreaterThan(500);
-  await page.screenshot({ path: '.impeccable/review/full-stack-backend.png' });
-  await page
-    .getByLabel('Inspect', { exact: true })
-    .selectOption('connection:connection-3');
+  await expect(page.getByLabel('Inspect', { exact: true })).toHaveCount(0);
+  await selectGraphItem(page, 'edge', 'connection-3');
   await expect(page.getByLabel('Connection inspector')).toContainText(
     'memberships → Authorize task creation',
   );
@@ -389,9 +373,7 @@ test('full-stack example has nested sections, scoped inputs, and section navigat
   );
   await page.screenshot({ path: '.impeccable/review/full-stack-flow.png' });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page
-    .getByLabel('Inspect', { exact: true })
-    .selectOption('node:authorize');
+  await selectGraphItem(page, 'node', 'authorize');
   await expect(page.getByLabel('Node inspector')).toContainText('membership');
   expect(
     await page.evaluate(
@@ -415,21 +397,8 @@ test('database connections display arbitrary labels without interpreting them', 
     page.getByRole('button', { name: 'Valid graph', exact: true }),
   ).toBeVisible();
   await expect(page.locator('.react-flow__edge')).toHaveCount(6);
-  await expect(
-    page.getByRole('option', {
-      name: 'users → projects · M:M · membership',
-      exact: true,
-    }),
-  ).toHaveCount(1);
-  await expect(
-    page.getByRole('option', {
-      name: 'users → projects · 1:M · owns',
-      exact: true,
-    }),
-  ).toHaveCount(1);
-  await page
-    .getByLabel('Inspect', { exact: true })
-    .selectOption('connection:connection-5');
+  await expect(page.getByLabel('Inspect', { exact: true })).toHaveCount(0);
+  await selectGraphItem(page, 'edge', 'connection-5');
   await expect(page.getByLabel('Connection inspector')).toContainText(
     'users → projects',
   );
@@ -453,9 +422,7 @@ test('database connections display arbitrary labels without interpreting them', 
     '6 connections checked',
   );
   await page.setViewportSize({ width: 390, height: 844 });
-  await page
-    .getByLabel('Inspect', { exact: true })
-    .selectOption('connection:connection-6');
+  await selectGraphItem(page, 'edge', 'connection-6');
   await expect(page.getByLabel('Connection inspector')).toContainText(
     'users → profiles',
   );

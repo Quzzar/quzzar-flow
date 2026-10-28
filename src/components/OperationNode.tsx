@@ -3,6 +3,8 @@ import type { Node, NodeProps } from '@xyflow/react';
 import type { DesignerNode } from '../lib/types';
 import { ContentBlocks } from './ContentBlocks';
 import { NodeSymbol } from './NodeSymbol';
+import { SIDES } from '../lib/routing';
+import type { Side } from '../lib/routing';
 import * as s from '../styles/viewer.css';
 
 export type OperationFlowNode = Node<
@@ -11,9 +13,18 @@ export type OperationFlowNode = Node<
     hasInput: boolean;
     hasOutput: boolean;
     hasError: boolean;
+    inputSides: Side[];
+    outputSides: Side[];
   },
   'operation'
 >;
+
+const POSITIONS: Record<Side, Position> = {
+  left: Position.Left,
+  right: Position.Right,
+  top: Position.Top,
+  bottom: Position.Bottom,
+};
 
 export function OperationNode({
   data,
@@ -24,13 +35,20 @@ export function OperationNode({
     (!data.hasInput ? 'braces' : !data.hasOutput ? 'check' : 'function');
   return (
     <div className={`${s.node} ${selected ? s.nodeSelected : ''}`}>
-      {data.hasInput && (
-        <Handle
-          className={s.handle}
-          type="target"
-          position={Position.Left}
-          isConnectable={false}
-        />
+      {SIDES.flatMap((side) =>
+        [
+          { type: 'target' as const, active: data.inputSides.includes(side) },
+          { type: 'source' as const, active: data.outputSides.includes(side) },
+        ].map(({ type, active }) => (
+          <Handle
+            key={`${type}-${side}`}
+            id={`${type}-${side}`}
+            className={`${s.handle} ${active ? '' : s.inactiveHandle}`}
+            type={type}
+            position={POSITIONS[side]}
+            isConnectable={false}
+          />
+        )),
       )}
       <div className={s.nodeHeader}>
         {icon !== 'none' && (
@@ -48,14 +66,6 @@ export function OperationNode({
           <p className={s.nodeDescription}>{data.definition.processing}</p>
         )}
       </div>
-      {data.hasOutput && (
-        <Handle
-          className={s.handle}
-          type="source"
-          position={Position.Right}
-          isConnectable={false}
-        />
-      )}
     </div>
   );
 }

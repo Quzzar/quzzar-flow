@@ -1,9 +1,17 @@
 import type { DesignerGraph } from './types';
 import type { GroupBounds, NodeSize } from './group-layout';
 
+export const SIDES = ['right', 'left', 'bottom', 'top'] as const;
+export type Side = (typeof SIDES)[number];
 export type Point = { x: number; y: number };
 export type Route =
-  | { status: 'success'; points: Point[]; label: Point }
+  | {
+      status: 'success';
+      points: Point[];
+      label: Point;
+      sourceSide: Side;
+      targetSide: Side;
+    }
   | { status: 'error'; message: string; label: Point };
 type Box = GroupBounds;
 const CLEARANCE = 10;
@@ -96,7 +104,8 @@ function findPath(
   obstacles: Box[],
   bounds: Box,
   usage: Map<string, number>,
-): Point[] | undefined {
+  visibility: { points: Map<number, boolean>; segments: Map<string, boolean> },
+): { points: Point[]; cost: number } | undefined {
   const columns = xs.length;
   const startIndex = ys.indexOf(start.y) * columns + xs.indexOf(start.x);
   const endIndex = ys.indexOf(end.y) * columns + xs.indexOf(end.x);
@@ -109,12 +118,17 @@ function findPath(
     const cached = allowed.get(index);
     if (cached !== undefined) return cached;
     const p = point(index);
+    let free = visibility.points.get(index);
+    if (free === undefined) {
+      free = !obstacles.some((box) => inside(p, box));
+      visibility.points.set(index, free);
+    }
     const valid =
       p.x >= bounds.x &&
       p.x <= bounds.x + bounds.width &&
       p.y >= bounds.y &&
       p.y <= bounds.y + bounds.height &&
-      !obstacles.some((box) => inside(p, box));
+      free;
     allowed.set(index, valid);
     return valid;
   }
@@ -154,8 +168,15 @@ function findPath(
       )
         continue;
       const next = point(neighbor);
-      if (obstacles.some((box) => segmentIntersectsBox(current, next, box)))
-        continue;
+      const segmentKey = edgeKey(index, neighbor);
+      let clear = visibility.segments.get(segmentKey);
+      if (clear === undefined) {
+        clear = !obstacles.some((box) =>
+          segmentIntersectsBox(current, next, box),
+        );
+        visibility.segments.set(segmentKey, clear);
+      }
+      if (!clear) continue;
       const direction = current.y === next.y ? 0 : 1;
       const nextKey = neighbor * 2 + direction;
       const distance =
@@ -182,15 +203,7 @@ function findPath(
     cursor = previous.get(cursor);
   }
   indices.reverse();
-  for (let index = 1; index < indices.length; index++) {
-    const a = indices[index - 1],
-      b = indices[index];
-    if (a !== undefined && b !== undefined) {
-      const key = edgeKey(a, b);
-      usage.set(key, (usage.get(key) ?? 0) + 1);
-    }
-  }
-  return indices.map(point);
+  return { points: indices.map(point), cost: costs.get(terminal) ?? Infinity };
 }
 
 function overlaps(a: Box, b: Box) {
@@ -252,6 +265,35 @@ export function routeGraph(
     width: Math.max(...allBoxes.map((box) => box.x + box.width)) - left + 48,
     height: Math.max(...allBoxes.map((box) => box.y + box.height)) - top + 48,
   };
+  function ports(box: Box, bounds: Box) {
+    return SIDES.map((side) => {
+      const anchor =
+        side === 'left'
+          ? { x: box.x, y: box.y + box.height / 2 }
+          : side === 'right'
+            ? { x: box.x + box.width, y: box.y + box.height / 2 }
+            : side === 'top'
+              ? { x: box.x + box.width / 2, y: box.y }
+              : { x: box.x + box.width / 2, y: box.y + box.height };
+      const point = {
+        x: Math.max(
+          bounds.x,
+          Math.min(
+            bounds.x + bounds.width,
+            anchor.x + (side === 'right' ? 24 : side === 'left' ? -24 : 0),
+          ),
+        ),
+        y: Math.max(
+          bounds.y,
+          Math.min(
+            bounds.y + bounds.height,
+            anchor.y + (side === 'bottom' ? 24 : side === 'top' ? -24 : 0),
+          ),
+        ),
+      };
+      return { side, anchor, point };
+    }).filter((port) => !obstacles.some((box) => inside(port.point, box)));
+  }
   const endpoints = graph.connections.flatMap((edge) => {
     const source = cards.get(edge.source),
       target = cards.get(edge.target);
@@ -275,14 +317,8 @@ export function routeGraph(
         source,
         target,
         bounds,
-        start: {
-          x: Math.min(source.x + source.width + 24, bounds.x + bounds.width),
-          y: source.y + source.height / 2,
-        },
-        end: {
-          x: Math.max(target.x - 24, bounds.x),
-          y: target.y + target.height / 2,
-        },
+        sources: ports(source, bounds),
+        targets: ports(target, bounds),
       },
     ];
   });
@@ -292,8 +328,8 @@ export function routeGraph(
       global.x + global.width,
       ...obstacles.flatMap((box) => [box.x, box.x + box.width]),
       ...endpoints.flatMap((item) => [
-        item.start.x,
-        item.end.x,
+        ...item.sources.map((port) => port.point.x),
+        ...item.targets.map((port) => port.point.x),
         item.bounds.x,
         item.bounds.x + item.bounds.width,
       ]),
@@ -306,8 +342,8 @@ export function routeGraph(
       ...obstacles.flatMap((box) => [box.y, box.y + box.height]),
       ...lanes.values(),
       ...endpoints.flatMap((item) => [
-        item.start.y,
-        item.end.y,
+        ...item.sources.map((port) => port.point.y),
+        ...item.targets.map((port) => port.point.y),
         item.bounds.y,
         item.bounds.y + item.bounds.height,
       ]),
@@ -316,38 +352,92 @@ export function routeGraph(
   const routes = new Map<string, Route>();
   const usage = new Map<string, number>();
   const labels: Box[] = [];
-  for (const { edge, source, target, start, end, bounds } of endpoints) {
+  const visibility = {
+    points: new Map<number, boolean>(),
+    segments: new Map<string, boolean>(),
+  };
+  const distance = (a: Point, b: Point) =>
+    Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+  for (const { edge, source, bounds, sources, targets } of endpoints) {
     const lane = lanes.get(edge.id);
-    const stops =
-      lane === undefined
-        ? [start, end]
-        : [start, { x: start.x, y: lane }, { x: end.x, y: lane }, end];
-    const path: Point[] = [];
-    let blocked = false;
-    for (let index = 1; index < stops.length; index++) {
-      const a = stops[index - 1],
-        b = stops[index];
-      if (!a || !b) continue;
-      const part = findPath(a, b, xs, ys, obstacles, bounds, usage);
-      if (!part) {
-        blocked = true;
-        break;
+    const candidates = sources
+      .flatMap((from) =>
+        targets.map((to) => ({
+          from,
+          to,
+          lowerBound:
+            distance(from.point, to.point) +
+            distance(from.anchor, from.point) +
+            distance(to.anchor, to.point),
+        })),
+      )
+      .sort((a, b) => a.lowerBound - b.lowerBound);
+    let best:
+      | {
+          cost: number;
+          path: Point[];
+          from: (typeof sources)[number];
+          to: (typeof targets)[number];
+        }
+      | undefined;
+    for (const { from, to, lowerBound } of candidates) {
+      if (edge.source === edge.target && from.side === to.side) continue;
+      if (best && lowerBound >= best.cost) continue;
+      const stops =
+        lane === undefined
+          ? [from.point, to.point]
+          : [
+              from.point,
+              { x: from.point.x, y: lane },
+              { x: to.point.x, y: lane },
+              to.point,
+            ];
+      const path: Point[] = [];
+      let cost =
+        distance(from.anchor, from.point) + distance(to.anchor, to.point);
+      for (let index = 1; index < stops.length; index++) {
+        const a = stops[index - 1],
+          b = stops[index];
+        if (!a || !b) continue;
+        const part = findPath(
+          a,
+          b,
+          xs,
+          ys,
+          obstacles,
+          bounds,
+          usage,
+          visibility,
+        );
+        if (!part) {
+          cost = Infinity;
+          break;
+        }
+        path.push(...part.points);
+        cost += part.cost;
       }
-      path.push(...part);
+      if (Number.isFinite(cost) && (!best || cost < best.cost))
+        best = { cost, path, from, to };
     }
-    if (blocked) {
+    if (!best) {
       routes.set(edge.id, {
         status: 'error',
         message: 'No clear connection route is available within this layout.',
-        label: start,
+        label: { x: source.x + source.width, y: source.y + source.height / 2 },
       });
       continue;
     }
-    const points = compress([
-      { x: source.x + source.width, y: start.y },
-      ...path,
-      { x: target.x, y: end.y },
-    ]);
+    for (let index = 1; index < best.path.length; index++) {
+      const a = best.path[index - 1],
+        b = best.path[index];
+      if (!a || !b || distance(a, b) === 0) continue;
+      const ai = ys.indexOf(a.y) * xs.length + xs.indexOf(a.x),
+        bi = ys.indexOf(b.y) * xs.length + xs.indexOf(b.x);
+      const key = ai < bi ? `${ai}:${bi}` : `${bi}:${ai}`;
+      usage.set(key, (usage.get(key) ?? 0) + 1);
+    }
+    const start = best.from.point;
+    const points = compress([best.from.anchor, ...best.path, best.to.anchor]);
     const text = edge.label ?? 'Inspect contract';
     let lines = 1;
     let columns = 0;
@@ -402,7 +492,13 @@ export function routeGraph(
     }
     // Short routes may have no room for an inline label; keep their label beside the source port.
     if (!label) label = { x: start.x, y: start.y - 24 };
-    routes.set(edge.id, { status: 'success', points, label });
+    routes.set(edge.id, {
+      status: 'success',
+      points,
+      label,
+      sourceSide: best.from.side,
+      targetSide: best.to.side,
+    });
   }
   return routes;
 }
@@ -437,4 +533,61 @@ export function roundedRoute(points: Point[]): string {
     path += ` L ${before.x} ${before.y} Q ${current.x} ${current.y} ${after.x} ${after.y}`;
   }
   return path;
+}
+
+export type DirectionMarker = Point & { angle: number };
+
+/** Static chevrons follow source-to-target order, clear of corners, endpoints, and labels. */
+export function directionMarkers(
+  points: Point[],
+  label: Point,
+): DirectionMarker[] {
+  let offset = 0;
+  const segments = points.slice(1).flatMap((b, index) => {
+    const a = points[index];
+    if (!a) return [];
+    const length = Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    const segment = { a, b, length, start: offset };
+    offset += length;
+    return [segment];
+  });
+  if (offset < 240) return [];
+  const count = Math.min(8, Math.max(1, Math.floor(offset / 360)));
+  const markers: DirectionMarker[] = [];
+  for (let index = 1; index <= count; index++) {
+    const preferred = (offset * index) / (count + 1);
+    for (const adjustment of [0, -70, 70, -110, 110]) {
+      const distance = preferred + adjustment;
+      if (distance < 48 || distance > offset - 48) continue;
+      const segment = segments.find(
+        (segment) =>
+          distance >= segment.start + 20 &&
+          distance <= segment.start + segment.length - 20,
+      );
+      if (!segment) continue;
+      const ratio = (distance - segment.start) / segment.length;
+      const point = {
+        x: segment.a.x + (segment.b.x - segment.a.x) * ratio,
+        y: segment.a.y + (segment.b.y - segment.a.y) * ratio,
+      };
+      if (Math.abs(point.x - label.x) < 52 && Math.abs(point.y - label.y) < 40)
+        continue;
+      if (
+        markers.some(
+          (marker) =>
+            Math.abs(marker.x - point.x) + Math.abs(marker.y - point.y) < 100,
+        )
+      )
+        continue;
+      markers.push({
+        ...point,
+        angle:
+          (Math.atan2(segment.b.y - segment.a.y, segment.b.x - segment.a.x) *
+            180) /
+          Math.PI,
+      });
+      break;
+    }
+  }
+  return markers;
 }

@@ -610,3 +610,39 @@ test('measured routes avoid cards and remain framed after viewport resizing', as
     await page.setViewportSize({ width: 1440, height: 960 });
   }
 });
+
+test('return connections enter the near side and show static intermediate arrows', async ({
+  page,
+}) => {
+  await page.goto('/?example=full-stack-app');
+  await expect(
+    page.getByRole('button', { name: 'Valid graph', exact: true }),
+  ).toBeVisible();
+  const edge = page.locator('.react-flow__edge[data-id="connection-8"]');
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const path = document.querySelector<SVGPathElement>(
+          '.react-flow__edge[data-id="connection-8"] .react-flow__edge-path',
+        );
+        const card = document
+          .querySelector('.react-flow__node[data-id="board"]')
+          ?.getBoundingClientRect();
+        const matrix = path?.getScreenCTM();
+        if (!path || !card || !matrix) return Infinity;
+        const end = path.getPointAtLength(path.getTotalLength());
+        const point = new DOMPoint(end.x, end.y).matrixTransform(matrix);
+        return Math.abs(point.x - card.right);
+      }),
+    )
+    .toBeLessThan(6);
+  const chevrons = edge.getByTestId('direction-chevron');
+  await expect.poll(() => chevrons.count()).toBeGreaterThan(0);
+  await expect(chevrons.first()).toHaveCSS('animation-name', 'none');
+  await edge.focus();
+  await edge.press('Enter');
+  await expect(page.getByLabel('Connection inspector')).toContainText(
+    'Load project board → Project board',
+  );
+  await page.screenshot({ path: '.impeccable/review/automatic-sides.png' });
+});

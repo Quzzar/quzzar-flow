@@ -517,3 +517,8 @@ export const emptyGraph = style({
   textAlign: 'center',
   padding: t.space.xxl,
 });
+
+export const inactiveHandle = style({
+  visibility: 'hidden',
+  pointerEvents: 'none',
+});

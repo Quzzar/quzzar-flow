@@ -64,3 +64,5 @@ Sources use an empty object as their input contract. Disconnected nodes with req
 ## Connection labels
 
 `connect(source, target, { label })` accepts arbitrary display text. A label such as `1:M`, `M:M · membership`, or `Create task request` has no built-in semantics. Every connection uses the same endpoint and input/output checks regardless of its label. For table diagrams, a row schema can be the node output and an empty object its input; the connection has no required consumer fields to resolve. Passing validation does not prove foreign keys, multiplicity, uniqueness, or any other meaning suggested by a label. See [the examples guide](examples.md).
+
+Visual attachment sides are chosen automatically from all four card edges to reduce routing distance and bends. A right-side attachment can be an input or an output; only the authored source and target determine contract direction. Destination arrowheads and intermediate static chevrons communicate direction without affecting schema checks.

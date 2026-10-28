@@ -153,6 +153,18 @@ function Viewer({
       selected: selection?.type === 'node' && selection.id === node.id,
       data: {
         definition: node,
+        inputSides: graph.connections.flatMap((edge) => {
+          const route = routes.get(edge.id);
+          return edge.target === node.id && route?.status === 'success'
+            ? [route.targetSide]
+            : [];
+        }),
+        outputSides: graph.connections.flatMap((edge) => {
+          const route = routes.get(edge.id);
+          return edge.source === node.id && route?.status === 'success'
+            ? [route.sourceSide]
+            : [];
+        }),
         hasInput: graph.connections.some((edge) => edge.target === node.id),
         hasOutput: graph.connections.some((edge) => edge.source === node.id),
         hasError: result.issues.some(
@@ -193,6 +205,7 @@ function Viewer({
     .map((edge) => {
       const isSelected =
         selection?.type === 'connection' && selection.id === edge.id;
+      const route = routes.get(edge.id);
       const fields = result.bindings
         .filter((binding) => binding.connectionId === edge.id)
         .map(
@@ -203,6 +216,8 @@ function Viewer({
       return {
         ...edge,
         type: 'connection',
+        sourceHandle: `source-${route?.status === 'success' ? route.sourceSide : 'right'}`,
+        targetHandle: `target-${route?.status === 'success' ? route.targetSide : 'left'}`,
         zIndex: hasGroups ? 1 : 0,
         selected: isSelected,
         data: {

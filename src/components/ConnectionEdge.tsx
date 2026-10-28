@@ -1,6 +1,6 @@
 import { BaseEdge, EdgeLabelRenderer } from '@xyflow/react';
 import type { Edge, EdgeProps } from '@xyflow/react';
-import { roundedRoute } from '../lib/routing';
+import { directionMarkers, roundedRoute } from '../lib/routing';
 import type { Route } from '../lib/routing';
 import * as s from '../styles/viewer.css';
 
@@ -57,6 +57,21 @@ export function ConnectionEdge(props: EdgeProps<ConnectionFlowEdge>) {
         {...(props.style ? { style: props.style } : {})}
         interactionWidth={24}
       />
+      <g aria-hidden="true" pointerEvents="none">
+        {directionMarkers(points, position).map((marker, index) => (
+          <path
+            key={index}
+            data-testid="direction-chevron"
+            transform={`translate(${marker.x} ${marker.y}) rotate(${marker.angle})`}
+            d="M -5 -4 L 0 0 L -5 4"
+            fill="none"
+            stroke={props.style?.stroke ?? 'currentColor'}
+            strokeWidth={props.selected ? 1.8 : 1.4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ))}
+      </g>
       <EdgeLabelRenderer>
         <button
           type="button"

@@ -27,7 +27,7 @@ Make system structure and the movement and transformation of data inspectable so
 - Mount a read-only viewer by DOM ID or HTMLElement; inspect nodes and connections.
 - Processing descriptions are never executed.
 - Initial deliverable: a polished app foundation with a working illustrative flow.
-- Package name: `quzzar-system-designer`.
+- Package name: `quzzar-flow` (public npm package).
 - Public GitHub repository authorized by the user.
 - Build the skill later. Do not create one in this phase.
 - API: instantiate SystemDesigner, add nodes, connect them, validate, and render.

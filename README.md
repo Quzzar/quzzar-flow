@@ -1,4 +1,4 @@
-# Quzzar System Designer
+# Quzzar Flow
 
 Describe a system in code. Inspect its contracts in a read-only React Flow viewer.
 
@@ -15,27 +15,20 @@ Open http://127.0.0.1:5173. The example in `examples/checkout.ts` uses the publi
 
 ## Use the API
 
-The package is not published to npm yet. Build and pack it locally:
+Install in a web project with Bun or npm:
 
 ```sh
-bun run build:lib
-bun pm pack
-```
-
-Install the resulting tarball in a web project using either package manager:
-
-```sh
-bun add /path/to/quzzar-system-designer-0.0.1.tgz
+bun add quzzar-flow zod react react-dom
 # or
-npm install /path/to/quzzar-system-designer-0.0.1.tgz
+npm install quzzar-flow zod react react-dom
 ```
 
 React, React DOM, and Zod 4.6 are peer dependencies. Bun and Node can construct and validate graphs. Rendering requires a browser and a bundler that supports CSS imports, such as Vite.
 
 ```ts
 import { z } from 'zod';
-import { SystemDesigner } from 'quzzar-system-designer';
-import 'quzzar-system-designer/style.css';
+import { SystemDesigner } from 'quzzar-flow';
+import 'quzzar-flow/style.css';
 
 const sd = new SystemDesigner({ name: 'Calculate a total' });
 

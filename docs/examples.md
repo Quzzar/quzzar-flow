@@ -75,11 +75,11 @@ Every connection validates source output against required destination input fiel
 
 ## Render a design
 
-In a consuming app, install the package when published, import its stylesheet once, give a mount element a height, then call `render`. Within this repository the examples import `../src/index` so they run directly in Vite.
+In a consuming app, install `quzzar-flow`, import its stylesheet once, give a mount element a height, then call `render`. Within this repository the examples import `../src/index` so they run directly in Vite.
 
 ```ts
-import { SystemDesigner } from 'quzzar-system-designer';
-import 'quzzar-system-designer/style.css';
+import { SystemDesigner } from 'quzzar-flow';
+import 'quzzar-flow/style.css';
 
 const sd = new SystemDesigner({ name: 'My application' });
 // Add groups, nodes, and labeled connections as above.

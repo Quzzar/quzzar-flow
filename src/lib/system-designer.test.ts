@@ -420,3 +420,31 @@ describe('wide input coverage', () => {
     expect(sd.validate().bindings).toHaveLength(0);
   });
 });
+
+test('connection labels are arbitrary display text and never change schema validation', () => {
+  function make(label: string) {
+    const sd = new SystemDesigner();
+    sd.add({
+      id: 'source',
+      name: 'Source',
+      input: z.object({}),
+      output: z.object({ value: z.string() }),
+      processing: 'Describe.',
+    });
+    sd.add({
+      id: 'target',
+      name: 'Target',
+      input: z.object({ value: z.number() }),
+      output: z.object({}),
+      processing: 'Describe.',
+    });
+    sd.connect('source', 'target', { label });
+    return sd;
+  }
+  for (const label of ['1:M', 'anything → whatever', '<b>plain text</b>', '']) {
+    const sd = make(label);
+    expect(sd.getGraph().connections[0]?.label).toBe(label);
+    expect(sd.validate()).toEqual(make('Ordinary data').validate());
+    expect(sd.validate().valid).toBe(false);
+  }
+});

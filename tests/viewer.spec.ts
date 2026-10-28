@@ -405,7 +405,7 @@ test('full-stack example has nested sections, scoped inputs, and section navigat
   expect(errors).toEqual([]);
 });
 
-test('database relationships expose cardinality and keys independently of flow contracts', async ({
+test('database connections display arbitrary labels without interpreting them', async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -415,14 +415,23 @@ test('database relationships expose cardinality and keys independently of flow c
     page.getByRole('button', { name: 'Valid graph', exact: true }),
   ).toBeVisible();
   await expect(page.locator('.react-flow__edge')).toHaveCount(6);
+  await expect(
+    page.getByRole('option', {
+      name: 'users → projects · M:M · membership',
+      exact: true,
+    }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByRole('option', {
+      name: 'users → projects · 1:M · owns',
+      exact: true,
+    }),
+  ).toHaveCount(1);
   await page
     .getByLabel('Inspect', { exact: true })
-    .selectOption('relationship:relationship-5');
-  await expect(page.getByLabel('Relationship inspector')).toContainText(
-    'many to many',
-  );
-  await expect(page.getByLabel('Relationship inspector')).toContainText(
-    'composite primary key',
+    .selectOption('connection:connection-5');
+  await expect(page.getByLabel('Connection inspector')).toContainText(
+    'users → projects',
   );
   await expect
     .poll(async () => {
@@ -431,7 +440,7 @@ test('database relationships expose cardinality and keys independently of flow c
         .boundingBox();
       const label = await page
         .getByRole('button', {
-          name: 'Inspect relationship: members via memberships · N:N',
+          name: 'Inspect connection: M:M · membership',
           exact: true,
         })
         .boundingBox();
@@ -439,26 +448,16 @@ test('database relationships expose cardinality and keys independently of flow c
     })
     .toBe(true);
   await page.screenshot({ path: '.impeccable/review/database-design.png' });
-  await page
-    .getByLabel('Inspect', { exact: true })
-    .selectOption('relationship:relationship-1');
-  await expect(page.getByLabel('Relationship inspector')).toContainText(
-    'id → ownerId',
-  );
-  await page
-    .getByRole('button', { name: 'Inspect projects', exact: true })
-    .click();
-  await expect(page.getByLabel('Node inspector')).toContainText('projects');
   await page.getByRole('button', { name: 'Valid graph', exact: true }).click();
   await expect(page.getByLabel('Validation inspector')).toContainText(
-    '0 connections checked',
+    '6 connections checked',
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await page
     .getByLabel('Inspect', { exact: true })
-    .selectOption('relationship:relationship-6');
-  await expect(page.getByLabel('Relationship inspector')).toContainText(
-    'one to one',
+    .selectOption('connection:connection-6');
+  await expect(page.getByLabel('Connection inspector')).toContainText(
+    'users → profiles',
   );
   expect(
     await page.evaluate(

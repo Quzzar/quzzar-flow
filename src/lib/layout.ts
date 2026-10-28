@@ -6,7 +6,7 @@ export const COLUMN_WIDTH = 360;
 export function layoutGraph(
   graph: DesignerGraph,
 ): Map<string, { x: number; y: number }> {
-  const links = [...graph.connections, ...(graph.relationships ?? [])];
+  const links = graph.connections;
   const layers = new Map<string, number>();
   const remaining = new Set(graph.nodes.map((node) => node.id));
   for (let pass = 0; pass < graph.nodes.length && remaining.size; pass++) {

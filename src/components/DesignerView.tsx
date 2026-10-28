@@ -109,17 +109,14 @@ function Viewer({
   const validationButton = useRef<HTMLButtonElement>(null);
   const { fitView, fitBounds, viewportInitialized } = useReactFlow();
   const isLargeGraph = graph.nodes.length > 12;
-  const showPicker =
-    isLargeGraph ||
-    Boolean(graph.groups?.length) ||
-    Boolean(graph.relationships?.length);
+  const showPicker = isLargeGraph || Boolean(graph.groups?.length);
   const [selection, setSelection] = useState<Selection | null>(() => {
     const id = initialNodeId ?? graph.nodes[0]?.id;
     return id ? { type: 'node', id } : null;
   });
   const result = useMemo(() => validateGraph(graph), [graph]);
   const hasGroups = Boolean(graph.groups?.length);
-  const usesMeasuredFit = hasGroups || Boolean(graph.relationships?.length);
+  const usesMeasuredFit = hasGroups;
   const [nodeSizes, setNodeSizes] = useState<ReadonlyMap<string, NodeSize>>(
     () => new Map(),
   );
@@ -152,12 +149,8 @@ function Viewer({
       selected: selection?.type === 'node' && selection.id === node.id,
       data: {
         definition: node,
-        hasInput: [...graph.connections, ...(graph.relationships ?? [])].some(
-          (edge) => edge.target === node.id,
-        ),
-        hasOutput: [...graph.connections, ...(graph.relationships ?? [])].some(
-          (edge) => edge.source === node.id,
-        ),
+        hasInput: graph.connections.some((edge) => edge.target === node.id),
+        hasOutput: graph.connections.some((edge) => edge.source === node.id),
         hasError: result.issues.some(
           (issue) => issue.nodeId === node.id && issue.kind === 'error',
         ),
@@ -191,15 +184,11 @@ function Viewer({
     ];
   });
   const nodes: ViewerFlowNode[] = [...containers, ...operations];
-  const edges: ConnectionFlowEdge[] = [
-    ...graph.connections,
-    ...(graph.relationships ?? []),
-  ]
+  const edges: ConnectionFlowEdge[] = graph.connections
     .filter((edge) => positions.has(edge.source) && positions.has(edge.target))
     .map((edge, edgeIndex) => {
-      const isRelationship = 'cardinality' in edge;
-      const kind = isRelationship ? 'relationship' : 'connection';
-      const isSelected = selection?.type === kind && selection.id === edge.id;
+      const isSelected =
+        selection?.type === 'connection' && selection.id === edge.id;
       const sourcePosition = positions.get(edge.source);
       const targetPosition = positions.get(edge.target);
       const sourceGroup = graph.nodes.find(
@@ -208,7 +197,7 @@ function Viewer({
       const targetGroup = graph.nodes.find(
         (node) => node.id === edge.target,
       )?.group;
-      const isParallel = [...graph.connections, ...(graph.relationships ?? [])]
+      const isParallel = graph.connections
         .slice(0, edgeIndex)
         .some(
           (other) =>
@@ -233,16 +222,10 @@ function Viewer({
       return {
         ...edge,
         type: 'connection',
-        ...(isRelationship
-          ? {
-              label: `${edge.label ?? 'Relationship'} · ${edge.cardinality.replaceAll('-to-', ':').replaceAll('one', '1').replaceAll('many', 'N')}`,
-            }
-          : {}),
         zIndex: hasGroups ? 1 : 0,
         selected: isSelected,
         data: {
-          kind,
-          inspect: () => setSelection({ type: kind, id: edge.id }),
+          inspect: () => setSelection({ type: 'connection', id: edge.id }),
           fields,
           ...(spansColumn
             ? {
@@ -260,20 +243,15 @@ function Viewer({
               }
             : {}),
         },
-        ...(!isRelationship
-          ? {
-              markerEnd: {
-                type: MarkerType.ArrowClosed,
-                width: 16,
-                height: 16,
-                color: isSelected ? t.color.blue : t.color.edge,
-              },
-            }
-          : {}),
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 16,
+          height: 16,
+          color: isSelected ? t.color.blue : t.color.edge,
+        },
         style: {
           stroke: isSelected ? t.color.blue : t.color.edge,
           strokeWidth: isSelected ? 2 : 1.4,
-          ...(isRelationship ? { strokeDasharray: '6 4' } : {}),
         },
       };
     });
@@ -397,9 +375,7 @@ function Viewer({
                       padding: 0.2,
                       maxZoom: 1,
                     });
-                  } else if (value.startsWith('relationship:'))
-                    setSelection({ type: 'relationship', id: value.slice(13) });
-                  else if (value.startsWith('connection:'))
+                  } else if (value.startsWith('connection:'))
                     setSelection({ type: 'connection', id: value.slice(11) });
                   else setSelection({ type: 'validation' });
                 }}
@@ -434,23 +410,10 @@ function Viewer({
                       →{' '}
                       {graph.nodes.find((node) => node.id === connection.target)
                         ?.name ?? connection.target}
+                      {connection.label ? ` · ${connection.label}` : ''}
                     </option>
                   ))}
                 </optgroup>
-                {Boolean(graph.relationships?.length) && (
-                  <optgroup label="Relationships">
-                    {graph.relationships?.map((relationship) => (
-                      <option
-                        key={relationship.id}
-                        value={`relationship:${relationship.id}`}
-                      >
-                        {relationship.label ??
-                          `${relationship.source} → ${relationship.target}`}{' '}
-                        ({relationship.cardinality})
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
                 <option value="validation">Graph validation</option>
               </select>
             </div>
@@ -479,10 +442,7 @@ function Viewer({
                   }
                   onEdgeClick={(_, edge) =>
                     setSelection({
-                      type:
-                        edge.data?.kind === 'relationship'
-                          ? 'relationship'
-                          : 'connection',
+                      type: 'connection',
                       id: edge.id,
                     })
                   }
@@ -525,11 +485,7 @@ function Viewer({
                     );
                     if (selected?.type === 'select')
                       setSelection({
-                        type: graph.relationships?.some(
-                          (edge) => edge.id === selected.id,
-                        )
-                          ? 'relationship'
-                          : 'connection',
+                        type: 'connection',
                         id: selected.id,
                       });
                   }}
@@ -564,15 +520,6 @@ function Viewer({
                 <GitFork size={14} />
                 {graph.nodes.length} nodes<span>·</span>
                 {graph.connections.length} connections
-                {Boolean(graph.relationships?.length) && (
-                  <>
-                    <span>·</span>
-                    {graph.relationships?.length}{' '}
-                    {graph.relationships?.length === 1
-                      ? 'relationship'
-                      : 'relationships'}
-                  </>
-                )}
               </div>
               <CanvasControls fitGraph={fitGraph} />
             </div>

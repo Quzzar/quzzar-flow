@@ -86,11 +86,6 @@ components:
     rounded: '{rounded.small}'
     padding: '0 8px'
     height: '44px'
-  relationship-label:
-    backgroundColor: '{colors.canvas}'
-    textColor: '{colors.muted}'
-    rounded: '{rounded.small}'
-    padding: '4px 8px'
   group-container:
     backgroundColor: 'rgba(117, 167, 255, 0.07)'
     rounded: '{rounded.node}'
@@ -107,7 +102,7 @@ components:
 
 **Creative North Star: "Dark studio"**
 
-Dark studio uses a charcoal canvas, muted panels, and blue accents. The graph is the central artifact; restrained chrome and compact labels leave space for inspecting relationships.
+Dark studio uses a charcoal canvas, muted panels, and blue accents. The graph is the central artifact; restrained chrome and compact labels leave space for inspecting connections.
 
 Manrope carries interface language, while IBM Plex Mono distinguishes contracts, paths, and illustrative payloads. Flat tonal surfaces and precise borders establish hierarchy. The inspector holds readable detail when the graph is zoomed out, especially on mobile.
 
@@ -173,15 +168,15 @@ The library owns a single header row, canvas controls, and inspector. It fills i
 
 Operation cards keep a fixed logical width (248px), and React Flow scales the graph through pan, zoom, and fit-to-view. The dotted grid uses a spacing (22px). Canvas controls sit at the lower left with a shared inset (24px); the canvas has a minimum height (380px). Nodes and connections can be selected, but nodes cannot be dragged, connected, reconnected, or deleted. Graph layers pack into columns with at most eight rows each. Zoom ranges from an overview minimum (0.02) to a detail maximum (1.8).
 
-Groups form an arbitrarily deep, acyclic containment tree through their optional parent ID. Member nodes retain their internal flow layout. Bounds are measured from leaves upward, and placement proceeds from roots downward; rendering always places parents before children. Measured card sizes drive bounds after rendering and content resizing. Group headings reserve a top band (72px); members have side and bottom clearance (32px) and a vertical gap (48px). Root groups have horizontal separation (112px), while nested sibling groups use a smaller gap (48px). Ungrouped nodes remain outside the containers. Connections and relationships cross group boundaries; return and parallel paths use bypass lanes, and fit-to-view includes those lanes with measured group and member bounds.
+Groups form an arbitrarily deep, acyclic containment tree through their optional parent ID. Member nodes retain their internal flow layout. Bounds are measured from leaves upward, and placement proceeds from roots downward; rendering always places parents before children. Measured card sizes drive bounds after rendering and content resizing. Group headings reserve a top band (72px); members have side and bottom clearance (32px) and a vertical gap (48px). Root groups have horizontal separation (112px), while nested sibling groups use a smaller gap (48px). Ungrouped nodes remain outside the containers. Connections cross group boundaries; return and parallel paths use bypass lanes, and fit-to-view includes those lanes with measured group and member bounds.
 
-The Inspect chooser appears on desktop for graphs with any groups, any relationships, or more than twelve nodes, and remains available on mobile. Its Sections optgroup focuses a whole group, including nested members, without opening a group inspector. Choosing an operation focuses that node; connection and relationship choices open their respective inspectors. The chooser returns to its selection prompt when the inspector is closed or a section is focused.
+The Inspect chooser appears on desktop for graphs with any groups or more than twelve nodes, and remains available on mobile. Its Sections optgroup focuses a whole group, including nested members, without opening a group inspector. Choosing an operation focuses that node; connection choices open the connection inspector. The chooser returns to its selection prompt when the inspector is closed or a section is focused.
 
-At the mobile breakpoint (maximum width 760px), the layout becomes one column and the header uses smaller horizontal insets. An Inspect chooser provides sections, nodes, connections, relationships, and validation without requiring precise canvas taps. The canvas becomes a fixed overview region (460px tall), followed directly by a full-width inspector in normal document flow. Coarse pointers receive larger control targets (44px).
+At the mobile breakpoint (maximum width 760px), the layout becomes one column and the header uses smaller horizontal insets. An Inspect chooser provides sections, nodes, connections, and validation without requiring precise canvas taps. The canvas becomes a fixed overview region (460px tall), followed directly by a full-width inspector in normal document flow. Coarse pointers receive larger control targets (44px).
 
 Spacing follows the frontmatter scale. Header insets use `xxl` on desktop and `lg` on mobile; inspector sections use `xl`; node bodies use `lg`; node headers combine `md` vertically with `lg` horizontally. Content blocks stack with `lg` gaps. Tables scroll within their own width, and long code and binding paths wrap.
 
-The Vite consumer adds a wrapping example navigation above the library mount and supplies an h1 for the selected example through the header slot. Its examples, including a full-stack application, a relationship-based database design, large fan-in, ambiguous-field, explicitly resolved stress cases, and grouped systems, are authored in `examples/`; that navigation belongs to the demo. The viewer adds no brand strip, read-only label, repository link, automatic tagline, Contract graph badge, global status footer, or attribution badge.
+The Vite consumer adds a wrapping example navigation above the library mount and supplies an h1 for the selected example through the header slot. Its examples, including a full-stack application, a database design with authored connection labels, large fan-in, ambiguous-field, explicitly resolved stress cases, and grouped systems, are authored in `examples/`; that navigation belongs to the demo. The viewer adds no brand strip, read-only label, repository link, automatic tagline, Contract graph badge, global status footer, or attribution badge.
 
 ## Elevation & Depth
 
@@ -215,7 +210,7 @@ Group containers are not selectable, draggable, focusable, or connectable. Their
 
 ### Inputs / Fields
 
-The Inspect control is a labeled native select with a charcoal background, structural border, and larger readable type (14px). It appears on mobile and for desktop graphs with groups, relationships, or more than twelve nodes. It focuses sections and selects nodes, connections, relationships, or validation. There are no editable contract fields or graph-authoring forms in the viewer.
+The Inspect control is a labeled native select with a charcoal background, structural border, and larger readable type (14px). It appears on mobile and for desktop graphs with groups or more than twelve nodes. It focuses sections and selects nodes, connections, or validation. There are no editable contract fields or graph-authoring forms in the viewer.
 
 ### Navigation
 
@@ -223,17 +218,11 @@ Inspector tabs use muted text and a transparent background. The active tab adds 
 
 ### Connections and contracts
 
-Bezier connections use a directional arrow. In ungrouped graphs, connections that span intervening columns use a bypass lane around intermediate cards. Grouped graphs use upper bypass lanes for connections that return to an earlier group. Unselected paths use connection steel with a thin stroke (1.4px); selection uses inspection blue with a stronger stroke (2px). The clickable interaction width is wider than the visible stroke (24px). Payload names appear in compact monospaced labels and split onto separate lines. The selected label gains a blue border and text. Labels appear at a zoom of at least 0.4 or when their connection is selected, reducing clutter in large overviews.
+Bezier connections use a directional arrow. In ungrouped graphs, connections that span intervening columns use a bypass lane around intermediate cards. Grouped graphs use upper bypass lanes for connections that return to an earlier group. Unselected paths use connection steel with a thin stroke (1.4px); selection uses inspection blue with a stronger stroke (2px). The clickable interaction width is wider than the visible stroke (24px). All connections share the same solid directional rendering. Compact monospaced labels wrap within a shared maximum width (104px) from the connectionLabel dimension token. The author can supply any label string through `connect(..., { label, map? })`; when no label is supplied, the edge displays resolved input field names or an inspection prompt. Label wording does not change validation, inference, or rendering type. The selected label gains a blue border and text. Labels appear at a zoom of at least 0.4 or when their connection is selected, reducing clutter in large overviews.
 
-The connection inspector distinguishes consumed fields from available upstream output and the consumer's complete input contract. Explicitly configured bindings carry an explicit badge. Source output paths point to consumer input paths; fields supplied by other connections are listed separately. Contracts render as recursive field trees with monospaced names, blue type labels, and explicit required or optional labels for object fields. Native details/summary branches expand nested objects, array items and tuples, union alternatives, intersections, and negation. Top-level branches open initially in the inspector; compact card schemas start collapsed. Leaf rows reserve the same chevron space without showing an expand affordance. Open branches rotate their chevron and reveal children inset behind a structural left border.
+The connection inspector uses the supplied label as its heading, or Connection when it is absent, and shows source and target names below it. It distinguishes consumed fields from available upstream output and the consumer's complete input contract. Explicitly configured bindings carry an explicit badge. Source output paths point to consumer input paths; fields supplied by other connections are listed separately. Contracts render as recursive field trees with monospaced names, blue type labels, and explicit required or optional labels for object fields. Native details/summary branches expand nested objects, array items and tuples, union alternatives, intersections, and negation. Top-level branches open initially in the inspector; compact card schemas start collapsed. Leaf rows reserve the same chevron space without showing an expand affordance. Open branches rotate their chevron and reveal children inset behind a structural left border.
 
 Schema rows wrap at narrow widths, use label-size text, and separate branches with quiet dividers. Children use a modest indent (12px) and a left guide, keeping hierarchy readable within the inspector. Descriptions appear in muted prose; constraints appear beneath rows in wrapping, plain-language notes such as “At least 1” or “Min. 2 characters.” Compact card schemas omit constraint notes. Contract inspection uses this tree rather than a raw JSON disclosure; authored JSON content blocks remain monospaced payload previews.
-
-### Relationships
-
-Declared associations have dashed connectors (6px dash, 4px gap) without data-flow arrowheads. Labels pair the authored relationship name with a compact cardinality, such as 1:1, 1:N, or N:N. They share the edge-label surface and selection treatment, but wrap within a maximum width (104px) to avoid spanning neighboring cards. Canvas metadata counts relationships separately from data-flow connections.
-
-The relationship inspector shows endpoint names, plain-language cardinality, an optional description, and related keys when both are supplied. It explicitly states that the association does not prove cardinality, uniqueness, or foreign-key enforcement. Endpoint inspection actions sit in a wrapping row with a compact gap (8px); choosing one focuses and inspects that operation. Relationships describe structure independently of inferred input bindings or processing execution.
 
 ### Binding groups and mapping suggestions
 
@@ -248,7 +237,7 @@ Ambiguity issues in the validation inspector show read-only configuration sugges
 - **Do** use blue for selection, focus, paths, and contract types.
 - **Do** keep card headers and content separate with a structural divider.
 - **Do** keep group fills translucent, measure nested member content, and include bypass lanes in fit-to-view.
-- **Do** distinguish declared relationships from data-flow connections with dashed strokes, cardinality labels, and separate inspection details.
+- **Do** use the same directional connection style and validation behavior for every authored label.
 - **Do** keep detailed input and output contracts in the inspector.
 - **Do** preserve the mobile inspector chooser and readable stacked details.
 - **Do** keep the inspector close action reachable and clear selection when it closes.

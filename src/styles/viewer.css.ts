@@ -488,19 +488,11 @@ export const edgeLabel = style({
   color: t.color.muted,
   fontFamily: t.font.code,
   fontSize: t.size.tiny,
-  whiteSpace: 'pre-line',
+  whiteSpace: 'normal',
+  maxWidth: t.dimension.connectionLabel,
+  overflowWrap: 'anywhere',
   textAlign: 'center',
   cursor: 'pointer',
-});
-export const relationshipLabel = style({
-  maxWidth: t.dimension.relationshipLabel,
-  whiteSpace: 'normal',
-  overflowWrap: 'anywhere',
-});
-export const relationshipActions = style({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: t.space.sm,
 });
 export const edgeLabelSelected = style({
   borderColor: t.color.blue,

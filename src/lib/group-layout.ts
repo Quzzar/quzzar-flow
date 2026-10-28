@@ -58,9 +58,6 @@ export function layoutGroupedGraph(
       connections: graph.connections.filter(
         (edge) => ids.has(edge.source) && ids.has(edge.target),
       ),
-      relationships: (graph.relationships ?? []).filter(
-        (edge) => ids.has(edge.source) && ids.has(edge.target),
-      ),
     });
     const columns = new Map<number, string[]>();
     for (const [id, point] of local)

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-28T17:06:50.293274+00:00",
+  "generatedAt": "2026-10-28T17:12:50.063052+00:00",
   "title": "Design System: Quzzar System Designer",
   "extensions": {
     "colorMeta": {
@@ -323,8 +323,8 @@
       "name": "Inspect chooser",
       "kind": "input",
       "refersTo": "inspect-select",
-      "description": "Mobile inspection and desktop navigation for grouped, relationship-based, or large graphs. Sections focus group bounds; node choices focus operation cards.",
-      "html": "<label class=\"ds-picker\">Inspect<select class=\"ds-select\"><option>Choose a section or item</option><optgroup label=\"Sections\"><option>Backend</option><option>API</option></optgroup><optgroup label=\"Nodes\"><option>Authorize task creation</option></optgroup><optgroup label=\"Relationships\"><option>members via memberships (many-to-many)</option></optgroup><option>Graph validation</option></select></label>",
+      "description": "Mobile inspection and desktop navigation for grouped or large graphs. Sections focus group bounds; node choices focus operation cards; connections open the standard connection inspector.",
+      "html": "<label class=\"ds-picker\">Inspect<select class=\"ds-select\"><option>Choose a section or item</option><optgroup label=\"Sections\"><option>Backend</option><option>API</option></optgroup><optgroup label=\"Nodes\"><option>Authorize task creation</option></optgroup><optgroup label=\"Connections\"><option>users \u2192 projects</option></optgroup><option>Graph validation</option></select></label>",
       "css": ".ds-picker{font-family:\"Manrope Variable\",sans-serif;font-size:13px;line-height:1.6;display:flex;align-items:center;gap:12px;font-size:12px;color:#eef0f5}.ds-select{font-family:\"Manrope Variable\",sans-serif;font-size:14px;min-width:0;flex:1;min-height:44px;border-radius:6px;border:1px solid #303641;padding:0 8px;background:#14171d;color:#eef0f5;color-scheme:dark}.ds-select:focus-visible{outline:2px solid #75a7ff;outline-offset:4px;}"
     },
     {
@@ -335,12 +335,12 @@
       "css": ".ds-tabs{display:flex;gap:20px;padding:0 20px;border-bottom:1px solid #303641}.ds-tab{font-family:\"Manrope Variable\",sans-serif;font-size:13px;line-height:1.6;border:0;background:transparent;color:#a4acbb;padding:12px 0;font-weight:500;border-bottom:2px solid transparent;cursor:pointer}.ds-tab[aria-selected=true]{color:#75a7ff;border-bottom-color:#75a7ff}.ds-tab:focus-visible{outline:2px solid #75a7ff;outline-offset:4px;}"
     },
     {
-      "name": "Connection and relationship labels",
+      "name": "Connection label",
       "kind": "button",
       "refersTo": "connection-label",
-      "description": "Solid data-flow edges and dashed relationships share selected label colors. Relationship labels wrap within 104px and include cardinality; visible at zoom >= 0.4 or selection.",
-      "html": "<div class=\"ds-edge-previews\"><button class=\"ds-edge\" type=\"button\" aria-label=\"Inspect connection: Authorized draft\">Authorized draft</button><button class=\"ds-edge ds-relationship\" type=\"button\" aria-label=\"Inspect relationship: members via memberships, many to many\">members via memberships \u00b7 N:N</button></div>",
-      "css": ".ds-edge{border:1px solid #303641;border-radius:6px;padding:4px 8px;background:#171a20;color:#a4acbb;font-family:\"IBM Plex Mono\",monospace;font-size:11px;white-space:pre-line;text-align:center;cursor:pointer}.ds-edge[aria-pressed=true]{border-color:#75a7ff;color:#75a7ff}.ds-edge:focus-visible{outline:2px solid #75a7ff;outline-offset:4px;}.ds-edge-previews{display:flex;flex-wrap:wrap;align-items:center;gap:16px}.ds-relationship{max-width:104px;white-space:normal;overflow-wrap:anywhere}"
+      "description": "Arbitrary authored label on a standard directional connection; wraps within 104px. Visible at zoom >= 0.4 or selection, with shared blue selected treatment.",
+      "html": "<button class=\"ds-edge\" type=\"button\" aria-label=\"Inspect connection: M:M membership\">M:M \u00b7 membership</button>",
+      "css": ".ds-edge{border:1px solid #303641;border-radius:6px;padding:4px 8px;background:#171a20;color:#a4acbb;font-family:\"IBM Plex Mono\",monospace;font-size:11px;white-space:normal;max-width:104px;overflow-wrap:anywhere;text-align:center;cursor:pointer}.ds-edge[aria-pressed=true]{border-color:#75a7ff;color:#75a7ff}.ds-edge:focus-visible{outline:2px solid #75a7ff;outline-offset:4px}"
     },
     {
       "name": "Contract field tree",
@@ -367,7 +367,7 @@
   ],
   "narrative": {
     "northStar": "Dark studio",
-    "overview": "Dark studio uses a charcoal canvas, muted panels, and blue accents. The graph is the central artifact; restrained chrome and compact labels leave space for inspecting relationships.\n\nManrope carries interface language, while IBM Plex Mono distinguishes contracts, paths, and illustrative payloads. Flat tonal surfaces and precise borders establish hierarchy. The inspector holds readable detail when the graph is zoomed out, especially on mobile.",
+    "overview": "Dark studio uses a charcoal canvas, muted panels, and blue accents. The graph is the central artifact; restrained chrome and compact labels leave space for inspecting connections.\n\nManrope carries interface language, while IBM Plex Mono distinguishes contracts, paths, and illustrative payloads. Flat tonal surfaces and precise borders establish hierarchy. The inspector holds readable detail when the graph is zoomed out, especially on mobile.",
     "keyCharacteristics": [
       "Charcoal surfaces with a single blue interaction accent.",
       "Compact cards with author-supplied content and optional nested group containers.",
@@ -390,7 +390,7 @@
       "Do use blue for selection, focus, paths, and contract types.",
       "Do keep card headers and content separate with a structural divider.",
       "Do keep group fills translucent, measure nested member content, and include bypass lanes in fit-to-view.",
-      "Do distinguish declared relationships from data-flow connections with dashed strokes, cardinality labels, and separate inspection details.",
+      "Do use the same directional connection style and validation behavior for every authored label.",
       "Do keep detailed input and output contracts in the inspector.",
       "Do preserve the mobile inspector chooser and readable stacked details.",
       "Do keep the inspector close action reachable and clear selection when it closes.",

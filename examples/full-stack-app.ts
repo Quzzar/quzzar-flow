@@ -199,11 +199,6 @@ export function createFullStackAppExample(): SystemDesigner {
   sd.connect('receipt', 'confirmation', { label: 'Task notice' });
   sd.connect('tasks', 'load-board', { label: 'Task row contract' });
   sd.connect('load-board', 'board', { label: 'Board collection' });
-  sd.relate('projects', 'tasks', {
-    cardinality: 'one-to-many',
-    label: 'contains',
-    sourceKey: ['id'],
-    targetKey: ['projectId'],
-  });
+  sd.connect('projects', 'tasks', { label: '1:M · contains' });
   return sd;
 }

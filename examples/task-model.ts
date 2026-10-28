@@ -99,38 +99,10 @@ export function addTaskTables(
 }
 
 /** The join table is the concrete implementation of the conceptual users/projects association. */
-export function addTaskRelationships(sd: SystemDesigner) {
-  sd.relate('users', 'projects', {
-    cardinality: 'one-to-many',
-    label: 'owns',
-    sourceKey: ['id'],
-    targetKey: ['ownerId'],
-    description: 'One user can own many projects; each project has one owner.',
-  });
-  sd.relate('projects', 'tasks', {
-    cardinality: 'one-to-many',
-    label: 'contains',
-    sourceKey: ['id'],
-    targetKey: ['projectId'],
-    description:
-      'A project contains many tasks; each task belongs to one project.',
-  });
-  sd.relate('users', 'memberships', {
-    cardinality: 'one-to-many',
-    label: 'user memberships',
-    sourceKey: ['id'],
-    targetKey: ['userId'],
-  });
-  sd.relate('projects', 'memberships', {
-    cardinality: 'one-to-many',
-    label: 'project memberships',
-    sourceKey: ['id'],
-    targetKey: ['projectId'],
-  });
-  sd.relate('users', 'projects', {
-    cardinality: 'many-to-many',
-    label: 'members via memberships',
-    description:
-      'Conceptual association implemented by memberships(userId, projectId), with a composite primary key. This is separate from project ownership.',
-  });
+export function addTaskConnections(sd: SystemDesigner) {
+  sd.connect('users', 'projects', { label: '1:M · owns' });
+  sd.connect('projects', 'tasks', { label: '1:M · contains' });
+  sd.connect('users', 'memberships', { label: '1:M · user' });
+  sd.connect('projects', 'memberships', { label: '1:M · project' });
+  sd.connect('users', 'projects', { label: 'M:M · membership' });
 }

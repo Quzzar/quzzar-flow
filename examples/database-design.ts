@@ -1,5 +1,5 @@
 import { SystemDesigner } from '../src/index';
-import { addTaskRelationships, addTaskTables } from './task-model';
+import { addTaskConnections, addTaskTables } from './task-model';
 
 /** Database design: row contracts, declared keys, and conceptual and physical relationships. */
 export function createDatabaseDesignExample(): SystemDesigner {
@@ -18,14 +18,7 @@ export function createDatabaseDesignExample(): SystemDesigner {
     color: 'neutral',
   });
   addTaskTables(sd, 'tables', true);
-  addTaskRelationships(sd);
-  sd.relate('users', 'profiles', {
-    cardinality: 'one-to-one',
-    label: 'profile',
-    sourceKey: ['id'],
-    targetKey: ['userId'],
-    description:
-      'Each profile belongs to one user. A unique userId limits each user to at most one profile. Optionality is described here, not encoded by the cardinality label.',
-  });
+  addTaskConnections(sd);
+  sd.connect('users', 'profiles', { label: '1:1 · profile' });
   return sd;
 }

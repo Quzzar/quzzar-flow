@@ -25,7 +25,7 @@ Use **Inspect → Sections → Backend** to frame that section. Choose a node to
 
 Source: [database-design.ts](../examples/database-design.ts), reusing the same row schemas and table content.
 
-The database example has five tables, six relationships, and no data-flow connections. Each table uses a Zod row schema as its output contract and an empty input contract. Its center renders a table of column names, types, and declared PK/FK/UNIQUE labels. The inspector's Output tab shows the expandable row schema.
+The database example has five tables and six labeled connections. Each table uses a Zod row schema as its output contract and an empty input contract. Its center renders a table of column names, types, and declared PK/FK/UNIQUE labels. The inspector's Output tab shows the expandable row schema.
 
 | Association                | Cardinality  | Meaning                                                          |
 | -------------------------- | ------------ | ---------------------------------------------------------------- |
@@ -38,7 +38,7 @@ The database example has five tables, six relationships, and no data-flow connec
 
 The many-to-many association and its two join-table relationships deliberately show both the conceptual model and its physical representation. Memberships declares a composite primary key `(userId, projectId)`. Project ownership is a different association from membership, even though both connect users and projects.
 
-Relationships are dashed and labeled `1:1`, `1:N`, `N:1`, or `N:N`, read from source to target. Select one to see its description and key paths, then jump to either endpoint. These labels declare multiplicity; they do not encode minimum participation. Describe optionality in `description`. Real foreign keys, uniqueness, indexes, cascading actions, migrations, and row-level authorization remain implementation concerns.
+The labels in this example use `1:1`, `1:M`, and `M:M` notation. These are ordinary strings chosen by the example author. The package neither interprets them nor enforces database semantics. Select a connection to inspect its endpoints and contracts. Real foreign keys, uniqueness, indexes, cascading actions, migrations, and row-level authorization remain implementation concerns.
 
 ## Author nested groups
 
@@ -56,32 +56,22 @@ sd.addGroup({
 
 Parents can be declared before or after their children. Containers size around measured descendants, including expanded content. A group has one parent; cyclic or missing ancestry is a validation error. Groups do not become connection endpoints or schema scopes.
 
-## Choose a connection or a relationship
+## Label any connection
 
-Use `connect()` when a source supplies fields to a consumer's input contract:
+There is one connection API. Labels can describe a payload, a database relationship, or anything else:
 
 ```ts
+sd.connect('projects', 'tasks', { label: '1:M' });
+sd.connect('users', 'projects', { label: 'Membership' });
 sd.connect('memberships', 'authorize', {
   label: 'Scoped membership',
   map: [{ from: [], to: ['membership'] }],
 });
 ```
 
-Use `relate()` for a structural association:
+The label is displayed as plain text. It does not choose a connection type, infer database key paths, or change validation. Explicit `map` configuration still controls input field selection when needed.
 
-```ts
-sd.relate('projects', 'tasks', {
-  cardinality: 'one-to-many',
-  label: 'contains',
-  sourceKey: ['id'],
-  targetKey: ['projectId'],
-  description: 'One project can contain many tasks.',
-});
-```
-
-`sourceKey` and `targetKey` are optional, paired paths into the endpoints' **output** schemas. Omit both for a conceptual association. Supply arrays of literal property names for nested keys, just like explicit connection mappings. Do not point a relationship at a group.
-
-Validation checks relationship IDs, endpoints, cardinality values, paired key configuration, and the existence of declared key paths. It does not infer bindings from a relationship, count it as a checked data-flow connection, prove SQL constraints, or prove the relationship's cardinality. `valid` means the supported structural and contract checks passed. An association cannot satisfy a node's required input; use a real `connect()` for that.
+Every connection validates source output against required destination input fields. Table nodes in this example have empty input objects, so their labeled connections resolve no consumer fields. Their row schemas are available for inspection, but a valid result does not prove foreign keys or multiplicity. Node `additionalInfo` and authored table content document the intended keys and constraints.
 
 ## Render a design
 
@@ -92,7 +82,7 @@ import { SystemDesigner } from 'quzzar-system-designer';
 import 'quzzar-system-designer/style.css';
 
 const sd = new SystemDesigner({ name: 'My application' });
-// Add groups, nodes, connections, and relationships as above.
+// Add groups, nodes, and labeled connections as above.
 const validation = sd.validate();
 console.log(validation.status, validation.issues);
 const header = document.createElement('h1');

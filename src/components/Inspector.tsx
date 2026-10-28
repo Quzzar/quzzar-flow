@@ -15,7 +15,6 @@ import * as s from '../styles/viewer.css';
 export type Selection =
   | { type: 'node'; id: string }
   | { type: 'connection'; id: string }
-  | { type: 'relationship'; id: string }
   | { type: 'validation' };
 
 function InspectorFrame({
@@ -175,82 +174,6 @@ export function Inspector({
       </InspectorFrame>
     );
 
-  if (selection.type === 'relationship') {
-    const relationship = graph.relationships?.find(
-      (item) => item.id === selection.id,
-    );
-    const source = graph.nodes.find((node) => node.id === relationship?.source);
-    const target = graph.nodes.find((node) => node.id === relationship?.target);
-    return (
-      <InspectorFrame label="Relationship inspector" onClose={onClose}>
-        <div className={s.inspectorHeader}>
-          <h2 className={s.sectionTitle}>
-            {relationship?.label ?? 'Relationship'}
-          </h2>
-          <p className={s.description}>
-            {source?.name ?? relationship?.source} →{' '}
-            {target?.name ?? relationship?.target}
-          </p>
-        </div>
-        {relationship && (
-          <>
-            <section className={s.section}>
-              <h3 className={s.sectionHeading}>Cardinality</h3>
-              <p className={s.paragraph}>
-                {relationship.cardinality.replaceAll('-', ' ')}
-              </p>
-              {relationship.description && (
-                <p className={s.paragraph}>{relationship.description}</p>
-              )}
-            </section>
-            {relationship.sourceKey && relationship.targetKey && (
-              <section className={s.section}>
-                <h3 className={s.sectionHeading}>Related keys</h3>
-                <code className={s.bindingPath}>
-                  {relationship.sourceKey.join('.')} →{' '}
-                  {relationship.targetKey.join('.')}
-                </code>
-              </section>
-            )}
-            <section className={s.section}>
-              <p className={s.paragraph}>
-                Declared association. Cardinality, uniqueness, and foreign-key
-                enforcement are not proven by schema validation.
-              </p>
-              <div className={s.relationshipActions}>
-                {source && (
-                  <button
-                    type="button"
-                    className={s.button}
-                    onClick={() => onSelect({ type: 'node', id: source.id })}
-                  >
-                    Inspect {source.name}
-                  </button>
-                )}
-                {target && (
-                  <button
-                    type="button"
-                    className={s.button}
-                    onClick={() => onSelect({ type: 'node', id: target.id })}
-                  >
-                    Inspect {target.name}
-                  </button>
-                )}
-              </div>
-            </section>
-            {result.issues
-              .filter((issue) => issue.relationshipId === relationship.id)
-              .map((issue, index) => (
-                <section key={index} className={s.section}>
-                  <p className={s.bad}>{issue.message}</p>
-                </section>
-              ))}
-          </>
-        )}
-      </InspectorFrame>
-    );
-  }
-
   if (selection.type === 'connection') {
     const connection = graph.connections.find(
       (item) => item.id === selection.id,
@@ -271,7 +194,9 @@ export function Inspector({
         <div className={s.inspectorHeader}>
           <div className={s.row}>
             <Link2 size={17} className={s.nodeIcon} />
-            <h2 className={s.sectionTitle}>Connection</h2>
+            <h2 className={s.sectionTitle}>
+              {connection.label || 'Connection'}
+            </h2>
           </div>
           <p className={s.description}>
             {source.name} → {target.name}
@@ -296,7 +221,7 @@ export function Inspector({
             ))
           ) : (
             <p className={s.paragraph}>
-              No field mapping could be proven for this connection.
+              No fields resolved from this connection.
             </p>
           )}
         </section>

@@ -12,7 +12,6 @@ export type ConnectionFlowEdge = Edge<
     inspect: () => void;
     fields: string[];
     bypassY?: number;
-    kind?: 'connection' | 'relationship';
   },
   'connection'
 >;
@@ -47,8 +46,8 @@ export function ConnectionEdge(props: EdgeProps<ConnectionFlowEdge>) {
         <EdgeLabelRenderer>
           <button
             type="button"
-            aria-label={`Inspect ${props.data?.kind ?? 'connection'}: ${String(label)}`}
-            className={`${s.edgeLabel} ${props.data?.kind === 'relationship' ? s.relationshipLabel : ''} ${props.selected ? s.edgeLabelSelected : ''} nodrag nopan`}
+            aria-label={`Inspect connection: ${String(label)}`}
+            className={`${s.edgeLabel} ${props.selected ? s.edgeLabelSelected : ''} nodrag nopan`}
             style={{
               transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
             }}

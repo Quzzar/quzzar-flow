@@ -397,6 +397,12 @@ test('database connections display arbitrary labels without interpreting them', 
     page.getByRole('button', { name: 'Valid graph', exact: true }),
   ).toBeVisible();
   await expect(page.locator('.react-flow__edge')).toHaveCount(6);
+  await expect(
+    page.getByRole('button', {
+      name: 'Inspect connection: User profile (1:1)',
+      exact: true,
+    }),
+  ).toHaveCSS('font-size', '9px');
   await expect(page.getByLabel('Inspect', { exact: true })).toHaveCount(0);
   await selectGraphItem(page, 'edge', 'connection-5');
   await expect(page.getByLabel('Connection inspector')).toContainText(
@@ -465,4 +471,142 @@ test('database connections display arbitrary labels without interpreting them', 
     fullPage: true,
   });
   expect(errors).toEqual([]);
+});
+
+test('dense graphs offer readable source drilldown and double-click focus', async ({
+  page,
+}) => {
+  await page.goto('/?example=stress-test');
+  const selected = page.locator('.react-flow__node[data-id="decision"]');
+  await expect
+    .poll(async () => (await selected.boundingBox())?.width ?? 0)
+    .toBeGreaterThan(200);
+  await expect(
+    page.getByText('Routing unavailable:', { exact: false }),
+  ).toHaveCount(0);
+  await page.screenshot({ path: '.impeccable/review/stress-detail.png' });
+  await page
+    .getByLabel('Node inspector')
+    .locator('summary')
+    .filter({ hasText: 'Signal 01' })
+    .click();
+  await page
+    .getByRole('button', { name: 'Inspect Signal 01', exact: true })
+    .click();
+  await expect(page.getByLabel('Node inspector')).toContainText('Signal 01');
+  const supplier = page.locator('.react-flow__node[data-id="signal01"]');
+  await expect
+    .poll(async () => (await supplier.boundingBox())?.width ?? 0)
+    .toBeGreaterThan(200);
+  await page.screenshot({ path: '.impeccable/review/stress-source-focus.png' });
+  await page
+    .getByRole('button', { name: 'Fit graph to view', exact: true })
+    .click();
+  await expect
+    .poll(async () => (await supplier.boundingBox())?.width ?? 0)
+    .toBeLessThan(150);
+  await page.screenshot({ path: '.impeccable/review/stress-overview.png' });
+  await supplier.dblclick();
+  await expect
+    .poll(async () => (await supplier.boundingBox())?.width ?? 0)
+    .toBeGreaterThan(200);
+});
+
+test('measured routes avoid cards and remain framed after viewport resizing', async ({
+  page,
+}) => {
+  for (const example of [
+    'full-stack-app',
+    'grouped-system',
+    'database-design',
+    'stress-test',
+  ]) {
+    await page.goto(`/?example=${example}`);
+    await expect(
+      page.getByRole('button', { name: 'Valid graph', exact: true }),
+    ).toBeVisible();
+    await page
+      .getByRole('button', { name: 'Fit graph to view', exact: true })
+      .click();
+    await expect(
+      page.getByText('Routing unavailable:', { exact: false }),
+    ).toHaveCount(0);
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const cards = [
+            ...document.querySelectorAll<HTMLElement>(
+              '.react-flow__node-operation',
+            ),
+          ].map((element) => ({
+            id: element.dataset['id'],
+            rect: element.getBoundingClientRect(),
+          }));
+          const collisions: string[] = [];
+          for (const edge of document.querySelectorAll('.react-flow__edge')) {
+            const path = edge.querySelector<SVGPathElement>(
+              '.react-flow__edge-path',
+            );
+            const endpoints = edge
+              .getAttribute('aria-label')
+              ?.match(/^Edge from (.+) to (.+)$/);
+            if (!path || !endpoints) continue;
+            const matrix = path.getScreenCTM();
+            if (!matrix) continue;
+            const length = path.getTotalLength();
+            for (let distance = 0; distance < length; distance += 12) {
+              const sample = path.getPointAtLength(distance);
+              const point = new DOMPoint(sample.x, sample.y).matrixTransform(
+                matrix,
+              );
+              const collision = cards.find(
+                (card) =>
+                  card.id !== endpoints[1] &&
+                  card.id !== endpoints[2] &&
+                  point.x > card.rect.left + 2 &&
+                  point.x < card.rect.right - 2 &&
+                  point.y > card.rect.top + 2 &&
+                  point.y < card.rect.bottom - 2,
+              );
+              if (collision) {
+                collisions.push(
+                  `${edge.getAttribute('data-id')} crosses ${collision.id}`,
+                );
+                break;
+              }
+            }
+          }
+          return collisions;
+        }),
+      )
+      .toEqual([]);
+    await page.setViewportSize({ width: 1000, height: 800 });
+    const canvas = page.getByLabel('Read-only system contract graph', {
+      exact: true,
+    });
+    await expect
+      .poll(async () => {
+        const bounds = await canvas.boundingBox();
+        if (!bounds) return false;
+        for (const node of await page
+          .locator('.react-flow__node-operation')
+          .all()) {
+          const box = await node.boundingBox();
+          if (
+            !box ||
+            box.x < bounds.x - 1 ||
+            box.y < bounds.y - 1 ||
+            box.x + box.width > bounds.x + bounds.width + 1 ||
+            box.y + box.height > bounds.y + bounds.height + 1
+          )
+            return false;
+        }
+        return true;
+      })
+      .toBe(true);
+    await page.screenshot({
+      path: `.impeccable/review/${example}-routing.png`,
+    });
+    await page.setViewportSize({ width: 1440, height: 960 });
+  }
 });

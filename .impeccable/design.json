@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-28T17:27:10.843645+00:00",
+  "generatedAt": "2026-10-28T17:44:16.929946+00:00",
   "title": "Design System: Quzzar System Designer",
   "extensions": {
     "colorMeta": {
@@ -276,7 +276,11 @@
       },
       "code": {
         "displayName": "Contract syntax",
-        "purpose": "JSON, edge labels, and data tables; binding paths and schema field names use this family at label size (12px)."
+        "purpose": "JSON payloads and data tables; binding paths and schema field names use this family at label size (12px)."
+      },
+      "connection-tag": {
+        "displayName": "Technical connection tag",
+        "purpose": "User-requested small labels on the zoomable canvas only. Inspector detail remains readable at 12px and 13px."
       }
     },
     "breakpoints": [
@@ -330,9 +334,9 @@
       "name": "Connection label",
       "kind": "button",
       "refersTo": "connection-label",
-      "description": "Arbitrary authored label on a standard directional connection; wraps within 104px. Rendered at every zoom level and scaled with the graph, with shared blue selected treatment.",
-      "html": "<button class=\"ds-edge\" type=\"button\" aria-label=\"Inspect connection: User memberships (1:M)\">User memberships (1:M)</button>",
-      "css": ".ds-edge{border:1px solid #303641;border-radius:6px;padding:4px 8px;background:#171a20;color:#a4acbb;font-family:\"IBM Plex Mono\",monospace;font-size:11px;white-space:normal;max-width:104px;overflow-wrap:anywhere;text-align:center;cursor:pointer}.ds-edge[aria-pressed=true]{border-color:#75a7ff;color:#75a7ff}.ds-edge:focus-visible{outline:2px solid #75a7ff;outline-offset:4px}"
+      "description": "Small technical tag on a rounded orthogonal connection. User-requested 9px canvas text, 1.35 line height, 2px 4px padding, and 80px wrapping limit; rendered at every zoom.",
+      "html": "<button class=\"ds-edge\" type=\"button\" title=\"User memberships (1:M)\" aria-label=\"Inspect connection: User memberships (1:M)\">User memberships (1:M)</button>",
+      "css": ".ds-edge{border:1px solid #303641;border-radius:6px;padding:2px 4px;background:#171a20;color:#a4acbb;font-family:\"IBM Plex Mono\",monospace;font-size:9px;line-height:1.35;white-space:normal;max-width:80px;overflow-wrap:anywhere;text-align:center;cursor:pointer}.ds-edge[aria-pressed=true]{border-color:#75a7ff;color:#75a7ff}.ds-edge:focus-visible{outline:2px solid #75a7ff;outline-offset:4px}"
     },
     {
       "name": "Contract field tree",
@@ -344,9 +348,9 @@
     {
       "name": "Binding source group",
       "kind": "custom",
-      "description": "Native source disclosures for node input lists with more than eight bindings.",
-      "html": "<details class=\"ds-binding-group\"><summary>Signal 01 <span class=\"ds-muted\">\u00b7 3 fields</span> <span class=\"ds-explicit\">explicit</span></summary><div class=\"ds-binding-body\"><div class=\"ds-binding-row\"><div class=\"ds-binding-path\">$[\"signals\"][\"signal01\"][\"value\"] <span class=\"ds-explicit\">explicit</span></div><div class=\"ds-binding-source\">\u2190 signal01 <code>$[\"signals\"][\"signal01\"][\"value\"]</code></div></div></div></details>",
-      "css": ".ds-binding-group{font-family:\"Manrope Variable\",sans-serif;line-height:1.6;color:#eef0f5;padding:8px 0;border-bottom:1px solid #303641;font-size:12px}.ds-binding-group>summary{cursor:pointer}.ds-binding-group>summary:focus-visible{outline:2px solid #75a7ff;outline-offset:4px}.ds-muted{color:#a4acbb}.ds-explicit{font-size:11px;font-weight:550;color:#a4acbb;background:#242a34;padding:2px 8px;border-radius:6px;white-space:nowrap}.ds-binding-body{padding-top:12px}.ds-binding-row{margin-bottom:16px;font-size:12px}.ds-binding-path{color:#75a7ff;font-family:\"IBM Plex Mono\",monospace;font-size:12px;overflow-wrap:anywhere}.ds-binding-source{display:flex;gap:6px;align-items:baseline;color:#a4acbb;margin-top:4px;overflow-wrap:anywhere}"
+      "description": "Native source disclosures for node input lists with more than eight bindings. Opening a group reveals an action that inspects and focuses its source card.",
+      "html": "<details class=\"ds-binding-group\"><summary>Signal 01 <span class=\"ds-muted\">\u00b7 3 fields</span> <span class=\"ds-explicit\">explicit</span></summary><div class=\"ds-binding-body\"><button class=\"ds-binding-inspect\" type=\"button\">Inspect Signal 01</button><div class=\"ds-binding-row\"><div class=\"ds-binding-path\">$[\"signals\"][\"signal01\"][\"value\"] <span class=\"ds-explicit\">explicit</span></div><div class=\"ds-binding-source\">\u2190 signal01 <code>$[\"signals\"][\"signal01\"][\"value\"]</code></div></div></div></details>",
+      "css": ".ds-binding-group{font-family:\"Manrope Variable\",sans-serif;line-height:1.6;color:#eef0f5;padding:8px 0;border-bottom:1px solid #303641;font-size:12px}.ds-binding-group>summary{cursor:pointer}.ds-binding-group>summary:focus-visible{outline:2px solid #75a7ff;outline-offset:4px}.ds-muted{color:#a4acbb}.ds-explicit{font-size:11px;font-weight:550;color:#a4acbb;background:#242a34;padding:2px 8px;border-radius:6px;white-space:nowrap}.ds-binding-body{padding-top:12px}.ds-binding-row{margin-bottom:16px;font-size:12px}.ds-binding-path{color:#75a7ff;font-family:\"IBM Plex Mono\",monospace;font-size:12px;overflow-wrap:anywhere}.ds-binding-source{display:flex;gap:6px;align-items:baseline;color:#a4acbb;margin-top:4px;overflow-wrap:anywhere}.ds-binding-inspect{font-family:\"Manrope Variable\",sans-serif;font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:34px;padding:6px 12px;border:1px solid #303641;border-radius:6px;background:#242a34;color:#eef0f5;font-weight:550;cursor:pointer}.ds-binding-inspect:hover{background:#2a313d}.ds-binding-inspect:focus-visible{outline:2px solid #75a7ff;outline-offset:4px}@media(pointer:coarse){.ds-binding-inspect{min-height:44px}}"
     },
     {
       "name": "Node group",
@@ -381,7 +385,7 @@
     "dos": [
       "Do use blue for selection, focus, paths, and contract types.",
       "Do keep card headers and content separate with a structural divider.",
-      "Do keep group fills translucent, measure nested member content, and include bypass lanes in fit-to-view.",
+      "Do keep group fills translucent, measure nested member content, and include every routed point in fit-to-view.",
       "Do use the same directional connection style and validation behavior for every authored label.",
       "Do keep detailed input and output contracts in the inspector.",
       "Do preserve direct graph selection, keyboard focus, and readable stacked inspector details on mobile.",

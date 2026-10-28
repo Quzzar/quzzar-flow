@@ -19,7 +19,7 @@ Follow task creation:
 
 The separate board journey models **tasks → Load project board → Project board**. A table node exposes a row schema; the loader describes the scoped query and collection assembly. This is a contract-level illustration, not evidence of real authorization, filtering, query results, or persistence.
 
-Click a table or function card to open its overview, then use Input and Output to inspect its contracts. Click a connection label or path to inspect which fields supply the consumer. Pan and zoom for a closer look; **Fit graph to view** returns to the complete design. Close the inspector to give the canvas more room. Keyboard users can focus graph items and press Enter.
+Click a table or function card to open its overview, then use Input and Output to inspect its contracts. Click a connection label or path to inspect which fields supply the consumer. Double-click a card to focus it, or pan and zoom for a closer look; **Fit graph to view** returns to the complete design. Close the inspector to give the canvas more room. Keyboard users can focus graph items and press Enter.
 
 ## Database design
 
@@ -92,3 +92,9 @@ if (result.status === 'error') console.error(result.message);
 ```
 
 `header` accepts React content or an HTMLElement. The UI stays read-only; change the authored graph and render it again to change the design.
+
+## Dense graph navigation
+
+Graphs above 24 nodes open focused on the selected operation so card content is readable. Fit graph shows the complete topology; double-click a card to focus it again. In a large fan-in inspector, expand a source and choose its Inspect button to jump to that supplier. These controls inspect the same graph without a selector row or editable canvas. Labels remain rendered at every zoom, so an overview is a topology map rather than a promise that all its text fits at reading size.
+
+Connections use rounded orthogonal routes through gaps between measured card bounds. Internal long/parallel lanes remain inside their shared group. Routing avoids card interiors, includes connection extents in fit-to-view, and updates when content dimensions change. Canvas resizing refits the overview or preserves the focused node. If a layout cannot produce a clear route, the label reports a routing error. Dense channels may share segments; selecting a connection highlights it for inspection.

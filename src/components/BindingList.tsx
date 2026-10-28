@@ -25,9 +25,11 @@ function BindingRows({ bindings }: { bindings: InputBinding[] }) {
 export function BindingList({
   bindings,
   graph,
+  onInspectNode,
 }: {
   bindings: InputBinding[];
   graph: DesignerGraph;
+  onInspectNode: (id: string) => void;
 }) {
   if (bindings.length <= 8) return <BindingRows bindings={bindings} />;
   const groups = new Map<string, InputBinding[]>();
@@ -51,6 +53,15 @@ export function BindingList({
               )}
             </summary>
             <div className={s.bindingGroupBody}>
+              {sourceId && (
+                <button
+                  type="button"
+                  className={s.button}
+                  onClick={() => onInspectNode(sourceId)}
+                >
+                  Inspect {name}
+                </button>
+              )}
               <BindingRows bindings={group} />
             </div>
           </details>

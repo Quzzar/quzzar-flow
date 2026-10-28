@@ -305,7 +305,11 @@ export function Inspector({
           {bindings.length > 0 && (
             <section className={s.section}>
               <h3 className={s.sectionHeading}>Where inputs come from</h3>
-              <BindingList bindings={bindings} graph={graph} />
+              <BindingList
+                bindings={bindings}
+                graph={graph}
+                onInspectNode={(id) => onSelect({ type: 'node', id })}
+              />
             </section>
           )}
           {node.additionalInfo && (

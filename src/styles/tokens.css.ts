@@ -30,6 +30,7 @@ export const tokens = createGlobalTheme(':root', {
   },
   size: {
     tiny: '11px',
+    connection: '9px',
     small: '12px',
     body: '13px',
     medium: '14px',
@@ -55,7 +56,7 @@ export const tokens = createGlobalTheme(':root', {
     rail: '56px',
     inspector: '344px',
     node: '248px',
-    connectionLabel: '104px',
+    connectionLabel: '80px',
     icon: '16px',
     smallIcon: '14px',
     button: '34px',

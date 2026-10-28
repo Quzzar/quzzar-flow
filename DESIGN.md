@@ -44,6 +44,10 @@ typography:
     fontSize: '11px'
     fontWeight: 400
     lineHeight: 1.9
+  connection-tag:
+    fontFamily: '"IBM Plex Mono", monospace'
+    fontSize: '9px'
+    lineHeight: 1.35
 rounded:
   small: '6px'
   medium: '8px'
@@ -87,7 +91,8 @@ components:
     backgroundColor: '{colors.canvas}'
     textColor: '{colors.muted}'
     rounded: '{rounded.small}'
-    padding: '4px 8px'
+    typography: '{typography.connection-tag}'
+    padding: '2px 4px'
 ---
 
 # Design System: Quzzar System Designer
@@ -150,7 +155,8 @@ The pairing keeps interface language compact and contract syntax distinct. Use s
 - **Section title:** inspector heading, with the section-title role in frontmatter.
 - **Body:** operation names and general interface text. Operation names use semibold (600); processing prose uses a looser line height (1.85).
 - **Label:** descriptions, tabs, section headings, and control hints. Section headings use medium weight (550); node descriptions use a line height (1.7).
-- **Code:** JSON and edge payload labels use the code role. Binding paths and schema field names use IBM Plex Mono at label size (12px); requirement labels use tiny Manrope (11px). Long names and paths wrap rather than forcing the inspector wider.
+- **Code:** JSON payloads and data tables use the code role. Binding paths and schema field names use IBM Plex Mono at label size (12px); requirement labels use tiny Manrope (11px). Long names and paths wrap rather than forcing the inspector wider.
+- **Connection tag:** small technical canvas labels use the connection-tag role (9px, line height 1.35), following the user's explicit request for smaller labels. This narrowly applies to graph tags; inspector detail retains its readable 12px and 13px text.
 - **Content caption:** label-size text (12px) with medium weight (500).
 - **Tiny:** badges (11px) with medium weight (550).
 
@@ -164,9 +170,9 @@ Operation cards keep a fixed logical width (248px), and React Flow scales the gr
 
 Groups form an arbitrarily deep, acyclic containment tree through their optional parent ID. Member nodes retain their internal flow layout. Bounds are measured from leaves upward, and placement proceeds from roots downward; rendering always places parents before children. Measured card sizes drive bounds after rendering and content resizing. Group headings reserve a top band (72px); members have side and bottom clearance (32px), a vertical gap (80px), and column spacing (440px). The fixed card width leaves an inter-column gap (192px). Root groups have horizontal separation (144px), while nested sibling groups use a smaller gap (80px). Ungrouped nodes remain outside the containers.
 
-Long, parallel, and backward connections between members of the same group reserve lanes inside that container, below its heading. The first lane starts at a local vertical offset (84px), with additional lanes spaced apart (64px). When internal lanes exist, children begin below the heading plus the lane allocation and clearance: 72px + 64px per lane + 32px. Without internal lanes, children start beneath the heading band. Cross-group return connections retain exterior bypass lanes. Fit-to-view includes the complete measured group, member, and bypass-lane bounds.
+Long, parallel, and backward connections between members of the same group reserve lanes inside that container, below its heading. The first lane starts at a local vertical offset (84px), with additional lanes spaced apart (64px). When internal lanes exist, children begin below the heading plus the lane allocation and clearance: 72px + 64px per lane + 32px. Without internal lanes, children start beneath the heading band. The router uses these reserved lane positions as waypoints while respecting measured card obstacles. Connections between members sharing an ancestor group remain within that common container; cross-boundary connections use clear corridors between or around groups. Fit-to-view includes complete measured groups, cards, and every route point.
 
-Operation cards, connection paths, and labels provide direct inspection on the canvas. Pan and zoom navigate the graph, while Fit graph restores its overview. Focus an operation or connection and press Enter for keyboard selection; the inspector opens with its details.
+Operation cards, connection paths, and labels provide direct inspection on the canvas. Pan and zoom navigate the graph, while Fit graph restores its overview. Focus an operation or connection and press Enter for keyboard selection; the inspector opens with its details. Double-clicking an operation focuses it at a readable scale (up to zoom 1). Graphs with more than 24 operations initially focus the selected node instead of opening at a miniature overview. Fit graph restores the full overview and exits node focus. Canvas resizing preserves the current view mode by refitting either the complete overview or the focused node, including when the inspector opens or closes.
 
 At the mobile breakpoint (maximum width 760px), the layout becomes one column and the header uses smaller horizontal insets. The canvas becomes a fixed overview region (460px tall), followed directly by a full-width inspector in normal document flow. Coarse pointers receive larger control targets (44px).
 
@@ -210,7 +216,7 @@ Inspector tabs use muted text and a transparent background. The active tab adds 
 
 ### Connections and contracts
 
-Bezier connections use a directional arrow. In ungrouped graphs, connections that span intervening columns use a bypass lane around intermediate cards. Grouped graphs route same-group long, parallel, and backward connections through reserved interior lanes; connections that return across group boundaries use exterior bypass lanes. Unselected paths use connection steel with a thin stroke (1.4px); selection uses inspection blue with a stronger stroke (2px). The clickable interaction width is wider than the visible stroke (24px). All connections share the same solid directional rendering. Compact monospaced labels wrap within a shared maximum width (104px) from the connectionLabel dimension token. The author can supply any label string through `connect(..., { label, map? })`; when no label is supplied, the edge displays resolved input field names or an inspection prompt. Label wording does not change validation, inference, or rendering type. The selected label gains a blue border and text. Labels remain rendered at every zoom level and scale normally with the graph. Selection changes their border and text color without controlling visibility.
+Connections use rounded orthogonal paths and a directional arrow. Routing runs after node measurement, avoids card interiors with clearance (10px), and avoids group heading bands. It favors short clear corridors while penalizing bends and repeated corridor use. Connections within a shared group stay inside that common container, using preferred interior lanes when assigned. Corner rounding is restrained (up to 8px). Unselected paths use connection steel with a thin stroke (1.4px); selection uses inspection blue with a stronger stroke (2px). The clickable interaction width is wider than the visible stroke (24px). All connections share the same solid directional rendering. Technical monospaced tags use the small connection-tag role, compact padding (2px vertically, 4px horizontally), and a shared maximum width (80px) from the connectionLabel dimension token. Each tag keeps its complete label available in its title and accessible name. Labels seek clear positions along route segments, avoiding measured cards and already placed labels; when no inline position fits, the tag sits beside the source port. Routing failures show an explicit Routing unavailable label rather than a false successful path. The author can supply any label string through `connect(..., { label, map? })`; when no label is supplied, the edge displays resolved input field names or an inspection prompt. Label wording does not change validation, inference, or rendering type. The selected label gains a blue border and text. Labels remain rendered at every zoom level and scale normally with the graph. Selection changes their border and text color without controlling visibility.
 
 The connection inspector uses the supplied label as its heading, or Connection when it is absent, and shows source and target names below it. It distinguishes consumed fields from available upstream output and the consumer's complete input contract. Explicitly configured bindings carry an explicit badge. Source output paths point to consumer input paths; fields supplied by other connections are listed separately. Contracts render as recursive field trees with monospaced names, blue type labels, and explicit required or optional labels for object fields. Native details/summary branches expand nested objects, array items and tuples, union alternatives, intersections, and negation. Top-level branches open initially in the inspector; compact card schemas start collapsed. Leaf rows reserve the same chevron space without showing an expand affordance. Open branches rotate their chevron and reveal children inset behind a structural left border.
 
@@ -218,7 +224,7 @@ Schema rows wrap at narrow widths, use label-size text, and separate branches wi
 
 ### Binding groups and mapping suggestions
 
-The node inspector groups input bindings into native details disclosures when there are more than eight resolved fields. Each group represents a connection and names its source node with a field count. Groups start collapsed, use a structural bottom border and compact padding (8px vertically), and reveal binding rows with a modest top inset (12px). Explicit badges identify configured source choices at group and row level.
+The node inspector groups input bindings into native details disclosures when there are more than eight resolved fields. Each group represents a connection and names its source node with a field count. Groups start collapsed, use a structural bottom border and compact padding (8px vertically), and reveal binding rows with a modest top inset (12px). Explicit badges identify configured source choices at group and row level. Opening a source group reveals an Inspect source action before its binding rows; the action selects the supplier and focuses its card, keeping large fan-in graphs navigable from readable inspector content.
 
 Ambiguity issues in the validation inspector show read-only configuration suggestions. Each suggestion places an explanatory source label and monospaced `sd.connect(...)` example on the canvas tone with compact padding (12px) and the small corner radius. These are instructions for updating authored configuration, not editable controls or executed transformations.
 
@@ -228,7 +234,7 @@ Ambiguity issues in the validation inspector show read-only configuration sugges
 
 - **Do** use blue for selection, focus, paths, and contract types.
 - **Do** keep card headers and content separate with a structural divider.
-- **Do** keep group fills translucent, measure nested member content, and include bypass lanes in fit-to-view.
+- **Do** keep group fills translucent, measure nested member content, and include every routed point in fit-to-view.
 - **Do** use the same directional connection style and validation behavior for every authored label.
 - **Do** keep detailed input and output contracts in the inspector.
 - **Do** preserve direct graph selection, keyboard focus, and readable stacked inspector details on mobile.

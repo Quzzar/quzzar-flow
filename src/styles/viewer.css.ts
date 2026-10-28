@@ -24,7 +24,7 @@ globalStyle(`${studio} *`, { boxSizing: 'border-box' });
 globalStyle(`${studio} button, ${studio} a`, {
   WebkitTapHighlightColor: 'transparent',
 });
-globalStyle(`${studio} button`, {
+globalStyle(`:where(${studio}) button`, {
   fontFamily: 'inherit',
   fontSize: 'inherit',
   cursor: 'pointer',
@@ -449,11 +449,12 @@ export const edgeLabel = style({
   pointerEvents: 'all',
   border: `1px solid ${t.color.line}`,
   borderRadius: t.radius.small,
-  padding: `${t.space.xxs} ${t.space.sm}`,
+  padding: `2px ${t.space.xxs}`,
   background: t.color.canvas,
   color: t.color.muted,
   fontFamily: t.font.code,
-  fontSize: t.size.tiny,
+  fontSize: t.size.connection,
+  lineHeight: 1.35,
   whiteSpace: 'normal',
   maxWidth: t.dimension.connectionLabel,
   overflowWrap: 'anywhere',

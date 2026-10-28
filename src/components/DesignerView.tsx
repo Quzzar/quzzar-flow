@@ -16,8 +16,9 @@ import type {
   HeaderContent,
 } from '../lib/types';
 import { validateGraph } from '../lib/validate';
-import { COLUMN_WIDTH, layoutGraph } from '../lib/layout';
-import { GROUP_COLUMN_WIDTH, layoutGroupedGraph } from '../lib/group-layout';
+import { layoutGraph } from '../lib/layout';
+import { routeGraph } from '../lib/routing';
+import { layoutGroupedGraph } from '../lib/group-layout';
 import type { NodeSize } from '../lib/group-layout';
 import { GroupNode } from './GroupNode';
 import type { GroupFlowNode } from './GroupNode';
@@ -100,14 +101,14 @@ function Viewer({
 }) {
   const validationButton = useRef<HTMLButtonElement>(null);
   const { fitView, fitBounds, viewportInitialized } = useReactFlow();
-  const isLargeGraph = graph.nodes.length > 12;
   const [selection, setSelection] = useState<Selection | null>(() => {
     const id = initialNodeId ?? graph.nodes[0]?.id;
     return id ? { type: 'node', id } : null;
   });
   const result = useMemo(() => validateGraph(graph), [graph]);
   const hasGroups = Boolean(graph.groups?.length);
-  const usesMeasuredFit = hasGroups;
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const focusedNode = useRef<string | null>(null);
   const [nodeSizes, setNodeSizes] = useState<ReadonlyMap<string, NodeSize>>(
     () => new Map(),
   );
@@ -119,7 +120,19 @@ function Viewer({
     () => groupedLayout?.positions ?? layoutGraph(graph),
     [graph, groupedLayout],
   );
-  const hasFitGroups = useRef(false);
+  const routes = useMemo(
+    () =>
+      routeGraph(
+        graph,
+        positions,
+        nodeSizes,
+        groupedLayout?.containers,
+        groupedLayout?.parents,
+        groupedLayout?.lanes,
+      ),
+    [graph, positions, nodeSizes, groupedLayout],
+  );
+  const hasInitialViewFit = useRef(false);
   const operations: OperationFlowNode[] = graph.nodes.map((node) => {
     const measured = nodeSizes.get(node.id);
     const point = positions.get(node.id) ?? { x: 0, y: 0 };
@@ -177,33 +190,9 @@ function Viewer({
   const nodes: ViewerFlowNode[] = [...containers, ...operations];
   const edges: ConnectionFlowEdge[] = graph.connections
     .filter((edge) => positions.has(edge.source) && positions.has(edge.target))
-    .map((edge, edgeIndex) => {
+    .map((edge) => {
       const isSelected =
         selection?.type === 'connection' && selection.id === edge.id;
-      const sourcePosition = positions.get(edge.source);
-      const targetPosition = positions.get(edge.target);
-      const sourceGroup = graph.nodes.find(
-        (node) => node.id === edge.source,
-      )?.group;
-      const targetGroup = graph.nodes.find(
-        (node) => node.id === edge.target,
-      )?.group;
-      const isParallel = graph.connections
-        .slice(0, edgeIndex)
-        .some(
-          (other) =>
-            other.source === edge.source && other.target === edge.target,
-        );
-      const internalLane = groupedLayout?.lanes.get(edge.id);
-      const spansColumn =
-        sourcePosition &&
-        targetPosition &&
-        (isParallel ||
-          (hasGroups
-            ? targetPosition.x < sourcePosition.x ||
-              (sourceGroup === targetGroup &&
-                targetPosition.x - sourcePosition.x > GROUP_COLUMN_WIDTH)
-            : targetPosition.x - sourcePosition.x > COLUMN_WIDTH));
       const fields = result.bindings
         .filter((binding) => binding.connectionId === edge.id)
         .map(
@@ -219,23 +208,7 @@ function Viewer({
         data: {
           inspect: () => setSelection({ type: 'connection', id: edge.id }),
           fields,
-          ...(internalLane !== undefined
-            ? { bypassY: internalLane }
-            : spansColumn
-              ? {
-                  bypassY:
-                    (isLargeGraph
-                      ? sourcePosition.y
-                      : Math.min(
-                          ...[...positions.values()].map(
-                            (position) => position.y,
-                          ),
-                        )) -
-                    80 -
-                    (isLargeGraph ? edgeIndex % 3 : edgeIndex) *
-                      (hasGroups ? 48 : 16),
-                }
-              : {}),
+          route: routes.get(edge.id),
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
@@ -249,22 +222,21 @@ function Viewer({
         },
       };
     });
-  const lowestLane = Math.min(
-    0,
-    ...edges.map((edge) => edge.data?.bypassY ?? 0),
-  );
   const fitGraph = useCallback(() => {
-    if (!usesMeasuredFit) {
-      void fitView({ padding: 0.14 });
-      return;
-    }
+    focusedNode.current = null;
     const boxes = [
       ...[...(groupedLayout?.containers.values() ?? [])],
+      ...[...routes.values()].flatMap((route) =>
+        (route.status === 'success' ? route.points : [route.label]).map(
+          (point) => ({ ...point, width: 0, height: 0 }),
+        ),
+      ),
       ...graph.nodes.map((node) => ({
         ...(positions.get(node.id) ?? { x: 0, y: 0 }),
         ...(nodeSizes.get(node.id) ?? { width: 248, height: 260 }),
       })),
     ];
+    if (!boxes.length) return;
     const x = Math.min(...boxes.map((box) => box.x));
     const y = Math.min(...boxes.map((box) => box.y));
     const bounds = {
@@ -273,43 +245,78 @@ function Viewer({
       width: Math.max(...boxes.map((box) => box.x + box.width)) - x,
       height: Math.max(...boxes.map((box) => box.y + box.height)) - y,
     };
-    const top = Math.min(bounds.y, lowestLane - 40);
+    const top = bounds.y - 32;
     void fitBounds(
       {
-        x: bounds.x - 96,
+        x: bounds.x - 32,
         y: top,
-        width: bounds.width + 192,
+        width: bounds.width + 64,
         height: bounds.y + bounds.height - top + 32,
       },
       { padding: 0.14 },
     );
-  }, [
-    usesMeasuredFit,
-    fitView,
-    fitBounds,
-    graph,
-    lowestLane,
-    groupedLayout,
-    positions,
-    nodeSizes,
-  ]);
+  }, [fitBounds, graph, routes, groupedLayout, positions, nodeSizes]);
   useEffect(() => {
     if (
-      usesMeasuredFit &&
       viewportInitialized &&
       nodeSizes.size >= graph.nodes.length &&
-      !hasFitGroups.current
+      !hasInitialViewFit.current
     ) {
-      hasFitGroups.current = true;
-      fitGraph();
+      hasInitialViewFit.current = true;
+      if (graph.nodes.length > 24 && selection?.type === 'node') {
+        focusedNode.current = selection.id;
+        void fitView({
+          nodes: [{ id: selection.id }],
+          maxZoom: 1,
+          padding: 0.6,
+        });
+      } else fitGraph();
     }
   }, [
-    usesMeasuredFit,
     viewportInitialized,
     nodeSizes.size,
     graph.nodes.length,
+    selection,
+    fitView,
     fitGraph,
   ]);
+  const fitLatest = useRef(fitGraph);
+  useEffect(() => {
+    fitLatest.current = fitGraph;
+  }, [fitGraph]);
+  useEffect(() => {
+    const element = canvasRef.current;
+    if (!element || !viewportInitialized) return;
+    let previousWidth = element.clientWidth;
+    let previousHeight = element.clientHeight;
+    let frame = 0;
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+      const { width, height } = entry.contentRect;
+      if (
+        Math.abs(width - previousWidth) < 1 &&
+        Math.abs(height - previousHeight) < 1
+      )
+        return;
+      previousWidth = width;
+      previousHeight = height;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (focusedNode.current)
+          void fitView({
+            nodes: [{ id: focusedNode.current }],
+            maxZoom: 1,
+            padding: 0.6,
+          });
+        else fitLatest.current();
+      });
+    });
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [viewportInitialized, fitView]);
   return (
     <Tooltip.Provider delayDuration={250}>
       <div className={s.studio}>
@@ -337,7 +344,7 @@ function Viewer({
           aria-label={options.name ?? 'System graph'}
         >
           <div className={s.canvasColumn}>
-            <div className={s.canvas}>
+            <div className={s.canvas} ref={canvasRef}>
               {nodes.length > 0 ? (
                 <ReactFlow<ViewerFlowNode, ConnectionFlowEdge>
                   nodes={nodes}
@@ -350,6 +357,18 @@ function Viewer({
                   deleteKeyCode={null}
                   onPaneClick={() => setSelection(null)}
                   selectionOnDrag={false}
+                  zoomOnDoubleClick={false}
+                  onNodeDoubleClick={(_, node) => {
+                    if (node.type === 'operation') {
+                      setSelection({ type: 'node', id: node.id });
+                      focusedNode.current = node.id;
+                      void fitView({
+                        nodes: [{ id: node.id }],
+                        padding: 0.6,
+                        maxZoom: 1,
+                      });
+                    }
+                  }}
                   elevateNodesOnSelect={false}
                   elevateEdgesOnSelect={false}
                   zIndexMode="manual"
@@ -368,7 +387,6 @@ function Viewer({
                   }
                   onNodesChange={(changes) => {
                     if (
-                      usesMeasuredFit &&
                       changes.some((change) => change.type === 'dimensions')
                     ) {
                       setNodeSizes((previous) => {
@@ -409,7 +427,6 @@ function Viewer({
                         id: selected.id,
                       });
                   }}
-                  fitView={!usesMeasuredFit}
                   fitViewOptions={FIT_VIEW_OPTIONS}
                   minZoom={0.02}
                   maxZoom={1.8}
@@ -451,12 +468,14 @@ function Viewer({
               result={result}
               onSelect={(next) => {
                 setSelection(next);
-                if (next.type === 'node')
+                if (next.type === 'node') {
+                  focusedNode.current = next.id;
                   void fitView({
                     nodes: [{ id: next.id }],
                     maxZoom: 1,
                     padding: 0.5,
                   });
+                }
               }}
               onClose={() => {
                 setSelection(null);
